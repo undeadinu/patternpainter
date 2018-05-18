@@ -1,7 +1,7 @@
 var files = {
 	"Grid Pattern": [
 		"FantasySpheres",
-		"A1",
+		"TubeWaves",
 	],
 	"pattern-1": [
 		"B0",
