@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Color Gradients</title>
+	<style type="text/css">
+		
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+	</style>
+</head>
+
+	<body>
+		<div id="container"></div>
+		<script src="../build/three.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform mat4 modelViewMatrix; // optional
+			uniform mat4 projectionMatrix; // optional
+
+			uniform float time;
+
+			attribute vec3 position;
+			attribute vec4 color;
+
+			varying vec3 vPosition;
+			varying vec4 vColor;
+
+			void main()	{
+
+				vec3 newPosition = position + vec3( 1.0, 1.0, 0.0 );
+
+				vPosition = newPosition;
+
+				vColor = color;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+
+			precision mediump float;
+			precision mediump int;
+
+			uniform float time;
+
+			varying vec3 vPosition;
+			varying vec4 vColor;
+
+			void main()	{
+
+				vec4 color = vec4( vColor );
+				// color.r += sin( vPosition.x * 20.0 + time ) * 0.5;
+				// color.g += sin( vPosition.x * 10.0 + time ) * 0.5;
+				// color.b += sin( vPosition.x * 2.0 + time ) * 0.5;
+
+				gl_FragColor = color;
+
+			}
+
+		</script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, stats, controls;
+			var timer = 0;
+			var grid, group;
+			var themeColor = 0x0099ff;
+
+			var points =[], 
+				indices = [],
+				vertices = [], 
+				colors = [],
+				normals = [];
+
+			init();
+			animate();
+
+			function init() {
+
+				var container = document.getElementById( 'container' );
+
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 5000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( themeColor );
+				// scene.fog = new THREE.Fog( themeColor, 1, 200 );
+
+				var light;
+
+				var ambientLight = new THREE.AmbientLight( 0xffffff, 1.7 );
+				scene.add( ambientLight );
+
+				var pointLight = new THREE.PointLight( 0xff0000, 0.8 );
+				pointLight.position.set( 100, 100, 0 );
+				scene.add( pointLight );
+
+				var dirLight = new THREE.DirectionalLight( 0x0099ff, 2.5 );
+				dirLight.position.set( 100, 100, 400 );
+				scene.add(dirLight);
+
+				geometry = new THREE.BufferGeometry();
+
+
+
+				function pos( index, x, y, z, normal ) {
+
+					// indices.push(index);
+
+					positions.push( x ); 
+					positions.push( y ); 
+					positions.push( z );
+
+					normals.push( normal.x );
+					normals.push( normal.y );
+					normals.push( normal.z );
+
+					colors.push( 255 ); 
+					colors.push( 255 ); 
+					colors.push( 255 ); 
+					colors.push( 255 );
+				}
+
+				// function surface( segW, segH ) {
+
+				// 	// first: 计算所有的网格点
+				// 	for( var j=0; j<segH; ++j ) {
+				// 		for( var i=0; i<segW; ++i ) {
+
+				// 			var xProgress = i/segW;
+				// 			var yProgress = j/segH;
+
+				// 			var x = i*20;
+				// 			var y = j*10;
+				// 			// var z = Math.cos( yProgress * Math.PI )*50 * Math.sin( xProgress * Math.PI ) ;
+				// 			// var z = Math.cos( yProgress * Math.PI )*50;
+				// 			var z = 0;
+				// 			var r = 0.9;
+				// 			var g = 0;
+				// 			var b = 0.7;
+
+				// 			// var nx = -Math.sin( xProgress * Math.PI*2 );
+				// 			// var ny = -Math.sin( yProgress * Math.PI*2 );
+				// 			// var nz = 0.5;
+
+				// 			var point = {
+				// 				index: j*segW + i,
+
+				// 				x: x,
+				// 				y: y,
+				// 				z: z,
+
+				// 				nx: nx,
+				// 				ny: ny,
+				// 				nz: nz,
+
+				// 				r: r,
+				// 				g: g,
+				// 				b: b
+				// 			};
+
+				// 			points.push(point);
+				// 		}
+				// 	}
+
+				// 	// second: 生成positions和colors数组
+				// 	for( var r=0; r<segH-1; r++ ) {
+				// 		for( var c=0; c<segW-1; c++ ) {
+				// 			var index = r*segW+c;
+				// 			face( index, index+segW, index+segW+1, index+1 );
+				// 		}
+				// 	}
+				// }
+
+
+				function surface( width, height, segw, segh ) {
+					var stepx = Math.floor( width/segw ); // 50
+					var stepy = Math.floor( height/segh ); // 40
+
+					for( var j=0; j<segh; j++ ) {
+						for( var i=0; i<segw; i++ ) {
+							var index = ( j*segw + i ) * 4;
+
+							var x = i*stepx;
+							var y = j*stepy;
+							var z = 0;
+
+							pos( index, x, y, z );
+							pos( index+1, x+stepx, y, z );
+							pos( index+2, x+stepx, y+stepy, z );
+
+							pos( index, x, y, z );
+							pos( index+3, x, y+stepy, z );
+							pos( index+2, x+stepx, y+stepy, z );
+
+						}
+					}
+				}
+
+				// surface(100, 80, 1, 1);
+
+				// points = [
+				// 	100.0, 100.0, 240.0,
+				//     -100.0, 100.0, 0.0,
+				//     100.0, -100.0, 0.0, 
+				//     -100.0, -100.0, -70.0,  
+				// ];
+
+				// P0 = new THREE.Vector3(100.0, 100.0, 240.0);
+				// P1 = new THREE.Vector3(-100.0, 100.0, 0.0);
+				// P2 = new THREE.Vector3(100.0, -100.0, 0.0);
+				// P3 = new THREE.Vector3(-100.0, -100.0, -70.0);
+
+				// point_colors = [
+				// 	255, 255, 255, 255,
+				// 	255, 255, 255, 255,
+				// 	255, 255, 255, 255,
+				// 	255, 255, 255, 255
+				// ];
+
+				// indices = [ 
+				// 	0, 1, 2,
+				// 	1, 3, 2 
+				// ];
+
+
+				// 由于Utils.calcualteNormal并不适合于Three
+				// 我决定开始自己写一个法线计算方法
+				// N0 = new THREE.Vector3( 0, 0, 0 );
+				// N1 = new THREE.Vector3( 0, 0, 0 );
+				// N2 = new THREE.Vector3( 0, 0, 0 );
+				// N3 = new THREE.Vector3( 0, 0, 0 );
+
+				// var V10 = new THREE.Vector3();
+				// var V20 = new THREE.Vector3();
+				// V10.subVectors( P1, P0 );
+				// V20.subVectors( P2, P0 );
+				// N012 = V10.cross(V20);
+				// N012.normalize();
+
+				// N0.add(N012);
+				// N1.add(N012);
+				// N2.add(N012);
+
+				// var V31 = new THREE.Vector3();
+				// var V21 = new THREE.Vector3();
+				// V31.subVectors( P3, P1 );
+				// V21.subVectors( P2, P1 );
+				// N132 = V31.cross(V21);
+				// N132.normalize();
+
+				// N1.add(N132);
+				// N3.add(N132);
+				// N2.add(N132);
+
+				// N0.normalize();
+				// N1.normalize();
+				// N2.normalize();
+				// N3.normalize();
+
+
+				// make positions[] , normals[], colors[]
+				// pos( 0, points[0], points[1], points[2], N0 );
+				// pos( 1, points[3], points[4], points[5], N1 );
+				// pos( 2, points[6], points[7], points[8], N2 );
+
+				// pos( 1, points[3], points[4], points[5], N1 );
+				// pos( 3, points[9], points[10], points[11], N3 );
+				// pos( 2, points[6], points[7], points[8], N2 );
+
+
+
+
+				Points = {
+					positions: [],
+					normals: []
+				}
+
+				shape( 1000, 600, 10, 30 )
+
+				function shape( width, height, segW, segH ) {
+
+					stepX = Math.floor( width/segW );
+					stepY = Math.floor( height/segH );
+
+					for( var j=0; j<=segH; ++j ) {
+						for( var i=0; i<=segW; ++i ) {
+
+							var xProgress = i/segW;
+							var yProgress = j/segH;
+
+							var x = i*stepX - width/2;
+							var y = j*stepY - height/2;
+							// var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
+							var z1 = Math.acos( yProgress )*100* Math.sin( xProgress * Math.PI );
+							var z2 = Math.acos( yProgress-1 )*100-157;
+							var diff = z1 - z2;
+							var stepZ = diff/segW;
+							var z = z2 + stepZ*i;
+
+							Points.positions.push( new THREE.Vector3( x, y, z ) );
+							Points.normals.push( new THREE.Vector3(0,0,0) );
+
+						}
+					}
+
+					for( var j=0; j<segH; ++j ) {
+						for( var i=0; i<segW; ++i ) {
+
+							var index = j*(segW+1) + i;
+
+							face( index, index+1, index+1+segW);
+							face( index+1, index+segW+2, index+segW+1 );
+
+						}
+					}
+
+				}
+
+				function face( a, b, c ) {
+
+					indices.push( a, b, c );
+
+					vertices.push( Points.positions[a].x, Points.positions[a].y, Points.positions[a].z );
+					vertices.push( Points.positions[b].x, Points.positions[b].y, Points.positions[b].z );
+					vertices.push( Points.positions[c].x, Points.positions[c].y, Points.positions[c].z );
+
+					var Pa = Points.positions[a];
+					var Pb = Points.positions[b];
+					var Pc = Points.positions[c];
+
+					var Vba = new THREE.Vector3();
+					var Vca = new THREE.Vector3();
+					Vba.subVectors( Pb, Pa );
+					Vca.subVectors( Pc, Pa );
+					N = Vca.cross(Vba);
+					N.normalize();
+
+					Points.normals[a].add(N);
+					Points.normals[b].add(N);
+					Points.normals[c].add(N);
+
+					Points.normals[a].normalize();
+					Points.normals[b].normalize();
+					Points.normals[c].normalize();
+				}
+
+
+				for( var i=0; i<indices.length; ++i ) {
+					var index = indices[i];
+					normals.push( Points.normals[index].x, Points.normals[index].y, Points.normals[index].z );
+					// normals.push( 0 );
+				}
+				// for( var i=0; i<indices.length; ++i ) {
+				// 	normals[i+0] += Points.normals[i].x;
+				// 	normals[i+1] += Points.normals[i].y;
+				// 	normals[i+2] += Points.normals[i].z;
+				// }
+
+				// 
+				var positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
+				var normalAttribute = new THREE.Float32BufferAttribute( normals, 3);
+				var colorAttribute = new THREE.Uint8BufferAttribute( colors, 4 );
+
+				colorAttribute.normalized = true; // this will map the buffer values to 0.0f - +1.0f in the shader
+
+				geometry.addAttribute( 'position', positionAttribute );
+				geometry.addAttribute( 'normal', normalAttribute );
+				geometry.addAttribute( 'color', colorAttribute );
+
+				var material = new THREE.RawShaderMaterial( {
+
+					uniforms: {
+						time: { value: 1.0 }
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+					side: THREE.DoubleSide,
+					transparent: true
+
+				} );
+
+				var material2 = new THREE.MeshPhongMaterial({
+					color: 0xfffff, 
+					specular: 0xffffff, 
+					shininess: 250,
+					side: THREE.DoubleSide,
+					// wireframe: true
+				});
+
+				var nMaterial = new THREE.MeshNormalMaterial({
+					// wireframe: true,
+					side: THREE.DoubleSide
+				});
+
+				// planeGeo = new THREE.PlaneGeometry( 100 , 100, 10, 10 );
+				var mesh = new THREE.Mesh( geometry, nMaterial );
+				// mesh.position.set( -100, -200, 0 );
+				// mesh.rotation.y = Math.PI;
+
+				var mesh02 = new THREE.Mesh( geometry, nMaterial );
+				mesh02.rotation.x = Math.PI;
+				// mesh02.position.set( 0, -196, 0 );
+
+
+				scene.add( mesh );
+				// scene.add( mesh02 );
+
+				var helper = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
+				scene.add( helper );
+
+				var gridhelper = new THREE.GridHelper(400, 10 );
+				gridhelper.rotation.x= Math.PI/2;
+				// scene.add(gridhelper);
+
+				// RENDERER
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				controls = new THREE.OrbitControls( camera );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var timer = Date.now() * 0.001;
+				// timer++;
+				// planeGeo.verticesNeedUpdate = true;
+				// planeGeo.vertices[0].z = Math.sin(timer)*100;
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

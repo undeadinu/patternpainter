@@ -3,9 +3,7 @@ var files = {
 		"FantasySpheres",
 		"TubeWaves",
 	],
-	"pattern-1": [
-		"B0",
-		"B1",
-		"B2",
+	"Color": [
+		"ColorGradients",
 	]
 };
