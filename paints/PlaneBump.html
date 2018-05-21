@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<title>Color Gradients</title>
+	<title>Plane Bump</title>
 	<style type="text/css">
 		
 			body {
@@ -99,6 +99,8 @@
 			var grid, group;
 			var themeColor = 0x111111;
 
+			var anchorIterator = 1;
+
 			var points =[], 
 				indices = [],
 				vertices = [], 
@@ -107,6 +109,44 @@
 
 			init();
 			animate();
+
+
+
+
+			function Point( x, y, z ) {
+				this.position = new THREE.Vector3( x, y, z );
+				this.normal = new THREE.Vector3( 0, 0, 0 );
+				this.anchorId = 0;
+				this.hooks = [];
+			}
+
+			function Grid( horz, vert, unitsize_h, unitsize_v ) {
+				this.horz = horz;
+				this.vert = vert;
+				this.unitsize_h = unitsize_h;
+				this.unitsize_v = unitsize_v;
+				this.totalNum = horz * vert;
+				this.totalWidth = (horz-1)*unitsize_h;
+				this.totalHeight = (vert-1)*unitsize_v;
+				this.matrix = [];
+
+				this.make();
+			}
+			Grid.prototype.make = function() {
+				for( var v=0; v<this.vert; ++v ) {
+					for( var h=0; h<this.horz; ++h ) {
+
+						var x = h * this.unitsize_h - this.totalWidth/2 ;
+						var y = v * this.unitsize_v - this.totalHeight/2 ;
+						var z = 0;
+
+						var pos = new THREE.Vector3( x, y, z );
+
+						this.matrix.push(pos);
+					}
+				}
+			};
+
 
 			function init() {
 
@@ -139,58 +179,7 @@
 
 
 
-				function pos( index, x, y, z, normal ) {
 
-					// indices.push(index);
-
-					positions.push( x ); 
-					positions.push( y ); 
-					positions.push( z );
-
-					normals.push( normal.x );
-					normals.push( normal.y );
-					normals.push( normal.z );
-
-					colors.push( 255 ); 
-					colors.push( 255 ); 
-					colors.push( 255 ); 
-					colors.push( 255 );
-				}
-
-
-
-				function surface( width, height, segw, segh ) {
-					var stepx = Math.floor( width/segw ); // 50
-					var stepy = Math.floor( height/segh ); // 40
-
-					for( var j=0; j<segh; j++ ) {
-						for( var i=0; i<segw; i++ ) {
-							var index = ( j*segw + i ) * 4;
-
-							var x = i*stepx;
-							var y = j*stepy;
-							var z = 0;
-
-							pos( index, x, y, z );
-							pos( index+1, x+stepx, y, z );
-							pos( index+2, x+stepx, y+stepy, z );
-
-							pos( index, x, y, z );
-							pos( index+3, x, y+stepy, z );
-							pos( index+2, x+stepx, y+stepy, z );
-
-						}
-					}
-				}
-
-
-
-				Points = {
-					positions: [],
-					normals: []
-				}
-
-				shape( 1000, 600, 10, 30 )
 
 				function shape( width, height, segW, segH ) {
 
@@ -212,13 +201,75 @@
 							var stepZ = diff/segW;
 							var z = z2 + stepZ*i;
 
-							Points.positions.push( new THREE.Vector3( x, y, z ) );
-							Points.normals.push( new THREE.Vector3(0,0,0) );
+							var z = 0;
+
+							Points.push( new Point( x, y, z ) );
 
 						}
 					}
 
+				}
+
+				function pickPoint () {
+
+					var random = Math.floor( Math.random()*Points.length );
+
+					var random = 0;
+
+					var radius = 440;
+
+					var pickpoint = Points[random];
+					pickpoint.anchorId = anchorIterator++;
+
+					for( var i=0; i<Points.length; ++i ) {
+
+						if( i != random ) {
+
+							var distance = Points[i].position.distanceTo( pickpoint.position );
+
+							if( distance <= radius ) {
+
+								var weight = 1.0 - distance/radius;
+
+								Points[i].hooks.push({ 
+									hookTo : pickpoint.anchorId,
+									weight : weight
+								});
+
+							}
+						}
+					}
+				}
+
+				function movePoint( index ) {
+
+					var movepoint = Points[index];
+
+					var moveVector = new THREE.Vector3( 0, 0, 400 );
+
+					movepoint.position.add( moveVector );
+
+
+
+					for( var i=0; i<Points.length; ++i ) {
+
+						if( Points[i].hooks.length == 0 ) {
+							
+							continue;
+
+						}
+
+						console.log( Points[i].hooks[0].weight );
+
+						Points[i].position.add( moveVector.multiplyScalar( Points[i].hooks[0].weight ) );
+
+					}
+				}
+
+				function buildFaces( segW, segH ) {
+
 					for( var j=0; j<segH; ++j ) {
+
 						for( var i=0; i<segW; ++i ) {
 
 							var index = j*(segW+1) + i;
@@ -229,47 +280,53 @@
 						}
 					}
 
+
+					for( var i=0; i<indices.length; ++i ) {
+
+						var index = indices[i];
+
+						normals.push( Points[index].normal.x, Points[index].normal.y, Points[index].normal.z );
+
+					}
+
 				}
 
 				function face( a, b, c ) {
 
 					indices.push( a, b, c );
 
-					vertices.push( Points.positions[a].x, Points.positions[a].y, Points.positions[a].z );
-					vertices.push( Points.positions[b].x, Points.positions[b].y, Points.positions[b].z );
-					vertices.push( Points.positions[c].x, Points.positions[c].y, Points.positions[c].z );
+					var Pa = Points[a],
+						Pb = Points[b],
+						Pc = Points[c];
 
-					var Pa = Points.positions[a];
-					var Pb = Points.positions[b];
-					var Pc = Points.positions[c];
+					vertices.push( Pa.position.x, Pa.position.y, Pa.position.z );
+					vertices.push( Pb.position.x, Pb.position.y, Pb.position.z );
+					vertices.push( Pc.position.x, Pc.position.y, Pc.position.z );
 
 					var Vba = new THREE.Vector3();
 					var Vca = new THREE.Vector3();
-					Vba.subVectors( Pb, Pa );
-					Vca.subVectors( Pc, Pa );
+					Vba.subVectors( Pb.position, Pa.position );
+					Vca.subVectors( Pc.position, Pa.position );
 					N = Vca.cross(Vba);
 					N.normalize();
 
-					Points.normals[a].add(N);
-					Points.normals[b].add(N);
-					Points.normals[c].add(N);
+					Pa.normal.add(N);
+					Pb.normal.add(N);
+					Pc.normal.add(N);
 
-					Points.normals[a].normalize();
-					Points.normals[b].normalize();
-					Points.normals[c].normalize();
+					Pa.normal.normalize();
+					Pb.normal.normalize();
+					Pc.normal.normalize();
 				}
 
+				Points = [];
+				shape( 1000, 600, 10, 30 );
+				pickPoint();
+				movePoint(0);
+				buildFaces( 10, 30 );
 
-				for( var i=0; i<indices.length; ++i ) {
-					var index = indices[i];
-					normals.push( Points.normals[index].x, Points.normals[index].y, Points.normals[index].z );
-					// normals.push( 0 );
-				}
-				// for( var i=0; i<indices.length; ++i ) {
-				// 	normals[i+0] += Points.normals[i].x;
-				// 	normals[i+1] += Points.normals[i].y;
-				// 	normals[i+2] += Points.normals[i].z;
-				// }
+				// movePoint(0);
+				// Points[0].position.add( new THREE.Vector3(0,0,100))
 
 				// 
 				var positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
@@ -303,7 +360,7 @@
 				});
 
 				var nMaterial = new THREE.MeshNormalMaterial({
-					// wireframe: true,
+					wireframe: true,
 					side: THREE.DoubleSide
 				});
 
@@ -325,7 +382,7 @@
 
 				var gridhelper = new THREE.GridHelper(400, 10 );
 				gridhelper.rotation.x= Math.PI/2;
-				scene.add(gridhelper);
+				// scene.add(gridhelper);
 
 				// RENDERER
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -369,8 +426,12 @@
 
 				var timer = Date.now() * 0.001;
 				// timer++;
-				// planeGeo.verticesNeedUpdate = true;
-				// planeGeo.vertices[0].z = Math.sin(timer)*100;
+				// geometry.verticesNeedUpdate = true;
+				// geometry.vertices[0].z = Math.sin(timer)*100;
+
+				// geometry.attributes.position.needsUpdate = true;
+				// geometry.attributes.position.array[2] = Math.sin(timer)*100;
+
 				// mesh.rotation.y = timer;
 				renderer.render( scene, camera );
 
