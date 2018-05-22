@@ -45,8 +45,6 @@
 			uniform mat4 modelViewMatrix; // optional
 			uniform mat4 projectionMatrix; // optional
 
-			uniform float time;
-
 			attribute vec3 position;
 			attribute vec3 normal;
 			attribute vec4 color;
@@ -72,7 +70,11 @@
 			precision mediump float;
 			precision mediump int;
 
-			uniform float time;
+			uniform float time01;
+			uniform float time02;
+			uniform float time03;
+
+			uniform vec4 colorFix;
 
 			varying vec3 vPosition;
 			varying vec3 vNormal;
@@ -82,9 +84,9 @@
 
 				vec4 color = vec4( vColor );
 
-				color.r += vNormal.x;
-				color.g += vNormal.y;
-				color.b += vNormal.z;
+				color.r += vNormal.x + time01 + colorFix.r;
+				color.g += vNormal.y + time02 + colorFix.g;
+				color.b += vNormal.z + time03 + colorFix.b;
 
 				gl_FragColor = color;
 
@@ -112,7 +114,14 @@
 
 			}
 
+			var Dataset03 = {
 
+				indices :[],
+				vertices : [],
+				colors : [],
+				normals : []
+
+			}
 
 
 			function Point( x, y, z ) {
@@ -149,13 +158,13 @@
 							var x = i*stepX - width/2;
 							var y = j*stepY - height/2;
 
-							// var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
+							var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
 
-							var z1 = Math.sin( yProgress )*400;
-							var z2 = Math.acos( yProgress-1 )*400-557;
-							var diff = z1 - z2;
-							var stepZ = diff/segW;
-							var z = z2 + stepZ*i;
+							// var z1 = Math.sin( yProgress )*400;
+							// var z2 = Math.acos( yProgress-1 )*400-557;
+							// var diff = z1 - z2;
+							// var stepZ = diff/segW;
+							// var z = z2 + stepZ*i;
 
 							// var z = 0;
 
@@ -196,67 +205,242 @@
 				dirLight.position.set( 400, 100, 200 );
 				// scene.add(dirLight);
 
+				colorshape = new Shape( 1400, 600, 100, 100 );
+				buildFaces( colorshape, Dataset );
+
+				
+
+				// 
+				var positionAttribute = new THREE.Float32BufferAttribute( Dataset.vertices, 3 );
+				var normalAttribute = new THREE.Float32BufferAttribute( Dataset.normals, 3);
+				var colorAttribute = new THREE.Uint8BufferAttribute( Dataset.colors, 4 );
+
+				colorAttribute.normalized = true; // this will map the buffer values to 0.0f - +1.0f in the shader
+				
+				geometry = new THREE.BufferGeometry();
+				geometry.addAttribute( 'position', positionAttribute );
+				geometry.addAttribute( 'normal', normalAttribute );
+				geometry.addAttribute( 'color', colorAttribute );
+
+				var material = new THREE.RawShaderMaterial( {
+					uniforms: {
+						time01 : { value: 1.0 },
+						time02: { value: 1.0 },
+						time03: { value: 1.0 },
+						colorFix: { value: [ 1.6, 0.0, 0.9, 0.0 ] }
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+					side: THREE.DoubleSide,
+					transparent: true
+
+				} );
+
+				var material2 = new THREE.MeshPhongMaterial({
+					color: 0xffffff, 
+					specular: 0xffffff, 
+					shininess: 250,
+					side: THREE.DoubleSide,
+					// wireframe: true
+				});
+
+				var nMaterial = new THREE.MeshNormalMaterial({
+					// wireframe: true,
+					side: THREE.DoubleSide
+				});
+
+				mesh = new THREE.Mesh( geometry, material );
+				// mesh.position.set( -100, -200, 0 );
+				mesh.rotation.y = Math.PI;
+
+				var mesh02 = new THREE.Mesh( geometry, nMaterial );
+				mesh02.rotation.x = Math.PI;
+				// mesh02.position.set( 0, -196, 0 );
 
 
-				function pickAnchor ( shape, u, v ) {
+				scene.add( mesh );
+				// scene.add( mesh02 );
 
-					var index = v*shape.segW + u;
+				// var helper = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
+				// scene.add( helper );
 
-					var radius = 340;
+				// var gridhelper = new THREE.GridHelper(400, 10 );
+				// gridhelper.rotation.x= Math.PI/2;
+				// scene.add(gridhelper);
 
-					var pickpoint = shape.points[index];
-					pickpoint.anchorId = anchorIterator++;
+				// RENDERER
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
 
-					for( var i=0; i<shape.points.length; ++i ) {
+				container.appendChild( renderer.domElement );
 
-						if( i != index ) {
+				stats = new Stats();
+				container.appendChild( stats.dom );
 
-							var distance = shape.points[i].position.distanceTo( pickpoint.position );
+				controls = new THREE.OrbitControls( camera );
 
-							if( distance <= radius ) {
+				//
 
-								// var weight = 1.0 - distance/radius;
-								var weight = Math.cos( Math.PI * distance / radius  )/2 + 0.5;
+				window.addEventListener( 'resize', onWindowResize, false );
 
-								shape.points[i].hooks.push({ 
-									hookTo : pickpoint.anchorId,
-									weight : weight
-								});
+			}
 
-							}
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var time = Date.now() * 0.001;
+				// console.log(time)
+
+				// geometry.verticesNeedUpdate = true;
+				// geometry.vertices[0].z = Math.sin(timer)*100;
+
+				geometry.attributes.position.needsUpdate = true;
+				geometry.attributes.normal.needsUpdate = true;
+				// geometry.attributes.position.array[2] = Math.sin(timer)*100;
+
+
+
+				// moveAnchor( colorshape, 60, 20,  Math.sin(time)*2, 0, 0 );
+				// Dataset03 = {
+				// 	indices :[],
+				// 	vertices : [],
+				// 	colors : [],
+				// 	normals : []
+				// }
+				// buildFaces( colorshape, Dataset03 );
+				// updateAttributes(Dataset03);
+
+
+
+				mesh.material.uniforms.time01.value = Math.sin(time+0.4)*0.5;
+				mesh.material.uniforms.time02.value = Math.sin(time+1.5)*0.5;
+				mesh.material.uniforms.time03.value = Math.sin(time);
+
+				
+				renderer.render( scene, camera );
+
+			}
+
+			init();
+			animate();
+			
+			pickAnchor( colorshape, 60, 20 );
+
+			// move 300, 130, 460
+
+			moveAnchor( colorshape, 60, 20, 200, 140, 460 );
+
+				var Dataset02 = {
+
+					indices :[],
+					vertices : [],
+					colors : [],
+					normals : []
+
+				}
+
+				buildFaces( colorshape, Dataset02 );
+
+				updateAttributes(Dataset02);
+
+
+			////
+
+			function updateAttributes( Dataset ) {
+
+				for( var i=0; i<geometry.attributes.position.array.length; i++ ) {
+
+					geometry.attributes.position.array[i] = Dataset.vertices[i];
+
+				}
+
+				for( var i=0; i<geometry.attributes.normal.array.length; i++ ) {
+
+					geometry.attributes.normal.array[i] = Dataset.normals[i];
+
+				}
+			}
+
+			function pickAnchor ( shape, u, v ) {
+
+				var index = v*shape.segW + u;
+
+				var radius = 340;
+
+				var pickpoint = shape.points[index];
+				pickpoint.anchorId = anchorIterator++;
+
+				for( var i=0; i<shape.points.length; ++i ) {
+
+					if( i != index ) {
+
+						var distance = shape.points[i].position.distanceTo( pickpoint.position );
+
+						if( distance <= radius ) {
+
+							// var weight = 1.0 - distance/radius;
+
+							var yFall = 1.0 - Math.abs( shape.points[i].position.y - pickpoint.position.y ) / (radius*4) ;
+
+							var weight = (Math.cos( Math.PI * distance / radius  )/2 + 0.5) * yFall ;
+
+							shape.points[i].hooks.push({ 
+								hookTo : pickpoint.anchorId,
+								weight : weight
+							});
+
 						}
 					}
 				}
+			}
 
-				function moveAnchor( shape, u, v, x, y, z ) {
+			function moveAnchor( shape, u, v, moveX, moveY, moveZ ) {
 
-					var movepoint = shape.points[ v*shape.segW + u ];
+				var movepoint = shape.points[ v*shape.segW + u ];
 
-					var moveX = x, moveY = y, moveZ = z;
-
-					movepoint.position.add( new THREE.Vector3( moveX, moveY, moveZ ) );
-
+				movepoint.position.add( new THREE.Vector3( moveX, moveY, moveZ ) );
 
 
-					for( var i=0; i<shape.points.length; ++i ) {
 
-						if( shape.points[i].hooks.length == 0 ) {
-							
-							continue;
+				for( var i=0; i<shape.points.length; ++i ) {
 
-						}
-
-						var w = shape.points[i].hooks[0].weight;
-
-						var mX = moveX * w, 
-							mY = moveY * w, 
-							mZ = moveZ * w;
-
-
-						shape.points[i].position.add( new THREE.Vector3( mX, mY, mZ ) );
+					if( shape.points[i].hooks.length == 0 ) {
+						
+						continue;
 
 					}
+
+					var w = shape.points[i].hooks[0].weight;
+
+					var mX = moveX * w, 
+						mY = moveY * w, 
+						mZ = moveZ * w;
+
+
+					shape.points[i].position.add( new THREE.Vector3( mX, mY, mZ ) );
+
 				}
+			}
 
 				function buildFaces( shape, Dataset ) {
 
@@ -360,161 +544,8 @@
 
 				}
 
-				colorshape = new Shape( 1400, 600, 100, 100 );
-				buildFaces( colorshape, Dataset );
-
-				
-
-				// 
-				var positionAttribute = new THREE.Float32BufferAttribute( Dataset.vertices, 3 );
-				var normalAttribute = new THREE.Float32BufferAttribute( Dataset.normals, 3);
-				var colorAttribute = new THREE.Uint8BufferAttribute( Dataset.colors, 4 );
-
-				colorAttribute.normalized = true; // this will map the buffer values to 0.0f - +1.0f in the shader
-				
-				geometry = new THREE.BufferGeometry();
-				geometry.addAttribute( 'position', positionAttribute );
-				geometry.addAttribute( 'normal', normalAttribute );
-				geometry.addAttribute( 'color', colorAttribute );
-
-
-				pickAnchor( colorshape, 60, 40 );
-				
-				moveAnchor( colorshape, 60, 40, -40, 100, -200 );
-
-				Dataset02 = {
-
-					indices :[],
-					vertices : [],
-					colors : [],
-					normals : []
-
-				}
-
-				buildFaces( colorshape, Dataset02 );
-
-				function updateAttributes( Dataset ) {
-
-					for( var i=0; i<geometry.attributes.position.array.length; i++ ) {
-
-						geometry.attributes.position.array[i] = Dataset.vertices[i];
-
-					}
-
-					for( var i=0; i<geometry.attributes.normal.array.length; i++ ) {
-
-						geometry.attributes.normal.array[i] = Dataset.normals[i];
-
-					}
-				}
-
-				updateAttributes(Dataset02);
-
-				var material = new THREE.RawShaderMaterial( {
-					uniforms: {
-						time: { value: 1.0 }
-					},
-					vertexShader: document.getElementById( 'vertexShader' ).textContent,
-					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-					side: THREE.DoubleSide,
-					transparent: true
-
-				} );
-
-				var material2 = new THREE.MeshPhongMaterial({
-					color: 0xffffff, 
-					specular: 0xffffff, 
-					shininess: 250,
-					side: THREE.DoubleSide,
-					// wireframe: true
-				});
-
-				var nMaterial = new THREE.MeshNormalMaterial({
-					// wireframe: true,
-					side: THREE.DoubleSide
-				});
-
-				mesh = new THREE.Mesh( geometry, material );
-				// mesh.position.set( -100, -200, 0 );
-				mesh.rotation.y = Math.PI;
-
-				var mesh02 = new THREE.Mesh( geometry, nMaterial );
-				mesh02.rotation.x = Math.PI;
-				// mesh02.position.set( 0, -196, 0 );
-
-
-				scene.add( mesh );
-				// scene.add( mesh02 );
-
-				// var helper = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
-				// scene.add( helper );
-
-				// var gridhelper = new THREE.GridHelper(400, 10 );
-				// gridhelper.rotation.x= Math.PI/2;
-				// scene.add(gridhelper);
-
-				// RENDERER
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				container.appendChild( stats.dom );
-
-				controls = new THREE.OrbitControls( camera );
-
-				//
-
-				window.addEventListener( 'resize', onWindowResize, false );
-
-			}
-
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-			}
-
-			//
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-
-				render();
-				stats.update();
-
-			}
-
-			function render() {
-
-				var time = Date.now() * 0.001;
-				// timer++;
-				// geometry.verticesNeedUpdate = true;
-				// geometry.vertices[0].z = Math.sin(timer)*100;
-
-				// geometry.attributes.position.needsUpdate = true;
-				// geometry.attributes.position.array[2] = Math.sin(timer)*100;
-
-				mesh.material.uniforms.time.value = Math.sin(time);
-
-
-				// mesh.rotation.y = timer;
-				renderer.render( scene, camera );
-
-			}
-
-
 
 			
-
-			init();
-			animate();
 		</script>
 
 	</body>
