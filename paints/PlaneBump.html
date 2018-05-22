@@ -55,10 +55,7 @@
 
 			void main()	{
 
-				vec3 newPosition = position + vec3( 1.0, 1.0, 0.0 );
-
-				vPosition = newPosition;
-
+				vPosition = position;
 				vColor = color;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -101,14 +98,14 @@
 
 			var anchorIterator = 1;
 
-			var points =[], 
-				indices = [],
-				vertices = [], 
-				colors = [],
-				normals = [];
+			var Dataset = {
 
-			init();
-			animate();
+				indices :[],
+				vertices : [],
+				colors : [],
+				normals : []
+
+			}
 
 
 
@@ -120,32 +117,48 @@
 				this.hooks = [];
 			}
 
-			function Grid( horz, vert, unitsize_h, unitsize_v ) {
-				this.horz = horz;
-				this.vert = vert;
-				this.unitsize_h = unitsize_h;
-				this.unitsize_v = unitsize_v;
-				this.totalNum = horz * vert;
-				this.totalWidth = (horz-1)*unitsize_h;
-				this.totalHeight = (vert-1)*unitsize_v;
-				this.matrix = [];
+			function Shape( width, height, segW, segH ) {
 
-				this.make();
-			}
-			Grid.prototype.make = function() {
-				for( var v=0; v<this.vert; ++v ) {
-					for( var h=0; h<this.horz; ++h ) {
+				this.width = width;
+				this.height = height;
+				this.segW = segW;
+				this.segH = segH;
 
-						var x = h * this.unitsize_h - this.totalWidth/2 ;
-						var y = v * this.unitsize_v - this.totalHeight/2 ;
-						var z = 0;
+				this.points = [];
 
-						var pos = new THREE.Vector3( x, y, z );
+				initPoints( this, width, height, segW, segH );
 
-						this.matrix.push(pos);
+				function initPoints( scope, width, height, segW, segH ) {
+
+					stepX = Math.floor( width/segW );
+					stepY = Math.floor( height/segH );
+
+					// positions
+					for( var j=0; j<=segH; ++j ) {
+						for( var i=0; i<=segW; ++i ) {
+
+							var xProgress = i/segW;
+							var yProgress = j/segH;
+
+							var x = i*stepX - width/2;
+							var y = j*stepY - height/2;
+							// var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
+							var z1 = Math.sin( yProgress )*400;
+							var z2 = Math.acos( yProgress-1 )*400-557;
+							var diff = z1 - z2;
+							var stepZ = diff/segW;
+							var z = z2 + stepZ*i;
+
+							var z = 0;
+
+							scope.points.push( new Point( x, y, z ) );
+
+						}
 					}
 				}
-			};
+
+
+			}
 
 
 			function init() {
@@ -164,74 +177,40 @@
 
 				var light;
 
-				var ambientLight = new THREE.AmbientLight( 0xffffff, 1.7 );
-				scene.add( ambientLight );
+				var ambientLight = new THREE.AmbientLight( 0xffffff, 0.7 );
+				// scene.add( ambientLight );
 
 				var pointLight = new THREE.PointLight( 0xff0000, 0.8 );
-				pointLight.position.set( 100, 100, 0 );
-				scene.add( pointLight );
+				pointLight.position.set( 0, 100, 40 );
+				// scene.add( pointLight );
 
-				var dirLight = new THREE.DirectionalLight( 0x0099ff, 2.5 );
-				dirLight.position.set( 100, 100, 400 );
+				var dirLight = new THREE.DirectionalLight( 0x0099ff, 1.5 );
+				dirLight.position.set( 400, 100, 200 );
 				scene.add(dirLight);
 
-				geometry = new THREE.BufferGeometry();
 
 
+				function pickAnchor ( shape, u, v ) {
 
+					var index = v*shape.segW + u;
 
+					var radius = 340;
 
-				function shape( width, height, segW, segH ) {
-
-					stepX = Math.floor( width/segW );
-					stepY = Math.floor( height/segH );
-
-					for( var j=0; j<=segH; ++j ) {
-						for( var i=0; i<=segW; ++i ) {
-
-							var xProgress = i/segW;
-							var yProgress = j/segH;
-
-							var x = i*stepX - width/2;
-							var y = j*stepY - height/2;
-							// var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
-							var z1 = Math.sin( yProgress )*400;
-							var z2 = Math.acos( yProgress-1 )*400-557;
-							var diff = z1 - z2;
-							var stepZ = diff/segW;
-							var z = z2 + stepZ*i;
-
-							var z = 0;
-
-							Points.push( new Point( x, y, z ) );
-
-						}
-					}
-
-				}
-
-				function pickPoint () {
-
-					var random = Math.floor( Math.random()*Points.length );
-
-					var random = 0;
-
-					var radius = 100;
-
-					var pickpoint = Points[random];
+					var pickpoint = shape.points[index];
 					pickpoint.anchorId = anchorIterator++;
 
-					for( var i=0; i<Points.length; ++i ) {
+					for( var i=0; i<shape.points.length; ++i ) {
 
-						if( i != random ) {
+						if( i != index ) {
 
-							var distance = Points[i].position.distanceTo( pickpoint.position );
+							var distance = shape.points[i].position.distanceTo( pickpoint.position );
 
 							if( distance <= radius ) {
 
-								var weight = 1.0 - distance/radius;
+								// var weight = 1.0 - distance/radius;
+								var weight = Math.cos( Math.PI * distance / radius  )/2 + 0.5;
 
-								Points[i].hooks.push({ 
+								shape.points[i].hooks.push({ 
 									hookTo : pickpoint.anchorId,
 									weight : weight
 								});
@@ -241,67 +220,122 @@
 					}
 				}
 
-				function movePoint( index ) {
+				function moveAnchor( shape, u, v ) {
 
-					var movepoint = Points[index];
+					var index = v*shape.segW + u;
 
-					var moveVector = new THREE.Vector3( 0, 0, 100 );
+					var movepoint = shape.points[index];
 
-					movepoint.position.add( moveVector );
+					var moveVector = new THREE.Vector3( 0, 0, 400 );
+
+					var moveX = -400, moveY = 200, moveZ = 200;
+
+					movepoint.position.add( new THREE.Vector3( moveX, moveY, moveZ ) );
 
 
 
-					for( var i=0; i<Points.length; ++i ) {
+					for( var i=0; i<shape.points.length; ++i ) {
 
-						if( Points[i].hooks.length == 0 ) {
+						if( shape.points[i].hooks.length == 0 ) {
 							
 							continue;
 
 						}
 
-						console.log( i , Points[i].hooks[0].weight );
+						var w = shape.points[i].hooks[0].weight;
 
-						Points[i].position.add( moveVector.multiplyScalar( Points[i].hooks[0].weight ) );
+						var mX = moveX * w, 
+							mY = moveY * w, 
+							mZ = moveZ * w;
+
+
+						shape.points[i].position.add( new THREE.Vector3( mX, mY, mZ ) );
 
 					}
 				}
 
-				function buildFaces( segW, segH ) {
+				function buildFaces( shape, Dataset ) {
 
-					for( var j=0; j<segH; ++j ) {
+					setIndices( shape, Dataset );
 
-						for( var i=0; i<segW; ++i ) {
+					setVertices( shape, Dataset );
 
-							var index = j*(segW+1) + i;
+					setNormals( shape, Dataset );			
 
-							face( index, index+1, index+1+segW);
-							face( index+1, index+segW+2, index+segW+1 );
+				}
+
+				function setIndices( shape, Dataset ) {
+
+					for( var j=0; j<shape.segH; ++j ) {
+
+						for( var i=0; i<shape.segW; ++i ) {
+
+							var index = j*(shape.segW+1) + i;
+
+							Dataset.indices.push( index, index+1, index+1+shape.segW );
+							Dataset.indices.push( index+1, index+shape.segW+2, index+shape.segW+1 );
 
 						}
 					}
 
+				}
 
-					for( var i=0; i<indices.length; ++i ) {
+				function setVertices( shape, Dataset ) {
 
-						var index = indices[i];
+					for( var j=0; j<shape.segH; ++j ) {
 
-						normals.push( Points[index].normal.x, Points[index].normal.y, Points[index].normal.z );
+						for( var i=0; i<shape.segW; ++i ) {
+
+							var index = j*(shape.segW+1) + i;
+
+							face( shape, Dataset, index, index+1, index+1+shape.segW );
+							face( shape, Dataset, index+1, index+shape.segW+2, index+shape.segW+1 );
+
+						}
+					}
+				}
+
+				function setNormals( shape, Dataset ) {
+
+					for( var j=0; j<shape.segH; ++j ) {
+
+						for( var i=0; i<shape.segW; ++i ) {
+
+							var index = j*(shape.segW+1) + i;
+
+							calcNormal( shape, Dataset, index, index+1, index+1+shape.segW );
+							calcNormal( shape, Dataset, index+1, index+shape.segW+2, index+shape.segW+1 );
+
+						}
+					}
+
+					for( var i=0; i<Dataset.indices.length; ++i ) {
+
+						var index = Dataset.indices[i];
+
+						Dataset.normals.push( shape.points[index].normal.x, shape.points[index].normal.y, shape.points[index].normal.z );
 
 					}
 
 				}
 
-				function face( a, b, c ) {
+				function face( shape, Dataset, a, b, c ) {
 
-					indices.push( a, b, c );
+					var Pa = shape.points[a],
+						Pb = shape.points[b],
+						Pc = shape.points[c];
 
-					var Pa = Points[a],
-						Pb = Points[b],
-						Pc = Points[c];
+					Dataset.vertices.push( Pa.position.x, Pa.position.y, Pa.position.z );
+					Dataset.vertices.push( Pb.position.x, Pb.position.y, Pb.position.z );
+					Dataset.vertices.push( Pc.position.x, Pc.position.y, Pc.position.z );
 
-					vertices.push( Pa.position.x, Pa.position.y, Pa.position.z );
-					vertices.push( Pb.position.x, Pb.position.y, Pb.position.z );
-					vertices.push( Pc.position.x, Pc.position.y, Pc.position.z );
+				}
+
+				function calcNormal( shape, Dataset, a, b, c ) {
+
+					var Pa = shape.points[a],
+						Pb = shape.points[b],
+						Pc = shape.points[c];
 
 					var Vba = new THREE.Vector3();
 					var Vca = new THREE.Vector3();
@@ -317,30 +351,54 @@
 					Pa.normal.normalize();
 					Pb.normal.normalize();
 					Pc.normal.normalize();
+
 				}
 
-				Points = [];
-				shape( 200, 200, 4, 4 );
-				pickPoint();
-				movePoint(0);
-				buildFaces( 4, 4 );
+				var colorshape = new Shape( 1000, 600, 100, 100 );
+				buildFaces( colorshape, Dataset );
 
-				// movePoint(0);
-				// Points[0].position.add( new THREE.Vector3(0,0,100))
+				
 
 				// 
-				var positionAttribute = new THREE.Float32BufferAttribute( vertices, 3 );
-				var normalAttribute = new THREE.Float32BufferAttribute( normals, 3);
-				var colorAttribute = new THREE.Uint8BufferAttribute( colors, 4 );
+				var positionAttribute = new THREE.Float32BufferAttribute( Dataset.vertices, 3 );
+				var normalAttribute = new THREE.Float32BufferAttribute( Dataset.normals, 3);
+				var colorAttribute = new THREE.Uint8BufferAttribute( Dataset.colors, 4 );
 
 				colorAttribute.normalized = true; // this will map the buffer values to 0.0f - +1.0f in the shader
-
+				
+				geometry = new THREE.BufferGeometry();
 				geometry.addAttribute( 'position', positionAttribute );
 				geometry.addAttribute( 'normal', normalAttribute );
 				geometry.addAttribute( 'color', colorAttribute );
 
-				var material = new THREE.RawShaderMaterial( {
 
+				pickAnchor( colorshape, 60, 40 );
+				moveAnchor( colorshape, 60, 40 );
+
+				Dataset02 = {
+
+					indices :[],
+					vertices : [],
+					colors : [],
+					normals : []
+
+				}
+
+				buildFaces( colorshape, Dataset02 );
+
+				for( var i=0; i<geometry.attributes.position.array.length; i++ ) {
+
+					geometry.attributes.position.array[i] = Dataset02.vertices[i];
+
+				}
+
+				for( var i=0; i<geometry.attributes.normal.array.length; i++ ) {
+					geometry.attributes.normal.array[i] = Dataset02.normals[i];
+				}
+
+
+
+				var material = new THREE.RawShaderMaterial( {
 					uniforms: {
 						time: { value: 1.0 }
 					},
@@ -352,7 +410,7 @@
 				} );
 
 				var material2 = new THREE.MeshPhongMaterial({
-					color: 0xfffff, 
+					color: 0xffffff, 
 					specular: 0xffffff, 
 					shininess: 250,
 					side: THREE.DoubleSide,
@@ -360,14 +418,13 @@
 				});
 
 				var nMaterial = new THREE.MeshNormalMaterial({
-					wireframe: true,
+					// wireframe: true,
 					side: THREE.DoubleSide
 				});
 
-				// planeGeo = new THREE.PlaneGeometry( 100 , 100, 10, 10 );
-				mesh = new THREE.Mesh( geometry, nMaterial );
+				mesh = new THREE.Mesh( geometry, material2 );
 				// mesh.position.set( -100, -200, 0 );
-				// mesh.rotation.y = Math.PI;
+				mesh.rotation.y = Math.PI;
 
 				var mesh02 = new THREE.Mesh( geometry, nMaterial );
 				mesh02.rotation.x = Math.PI;
@@ -377,11 +434,11 @@
 				scene.add( mesh );
 				// scene.add( mesh02 );
 
-				var helper = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
+				// var helper = new THREE.VertexNormalsHelper( mesh, 10, 0x00ff00, 1 );
 				// scene.add( helper );
 
-				var gridhelper = new THREE.GridHelper(400, 10 );
-				gridhelper.rotation.x= Math.PI/2;
+				// var gridhelper = new THREE.GridHelper(400, 10 );
+				// gridhelper.rotation.x= Math.PI/2;
 				// scene.add(gridhelper);
 
 				// RENDERER
@@ -437,6 +494,12 @@
 
 			}
 
+
+
+			
+
+			init();
+			animate();
 		</script>
 
 	</body>
