@@ -216,7 +216,7 @@
 
 					var random = 0;
 
-					var radius = 440;
+					var radius = 100;
 
 					var pickpoint = Points[random];
 					pickpoint.anchorId = anchorIterator++;
@@ -245,7 +245,7 @@
 
 					var movepoint = Points[index];
 
-					var moveVector = new THREE.Vector3( 0, 0, 400 );
+					var moveVector = new THREE.Vector3( 0, 0, 100 );
 
 					movepoint.position.add( moveVector );
 
@@ -259,7 +259,7 @@
 
 						}
 
-						console.log( Points[i].hooks[0].weight );
+						console.log( i , Points[i].hooks[0].weight );
 
 						Points[i].position.add( moveVector.multiplyScalar( Points[i].hooks[0].weight ) );
 
@@ -320,10 +320,10 @@
 				}
 
 				Points = [];
-				shape( 1000, 600, 10, 30 );
+				shape( 200, 200, 4, 4 );
 				pickPoint();
 				movePoint(0);
-				buildFaces( 10, 30 );
+				buildFaces( 4, 4 );
 
 				// movePoint(0);
 				// Points[0].position.add( new THREE.Vector3(0,0,100))
