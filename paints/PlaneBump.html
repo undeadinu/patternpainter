@@ -48,15 +48,18 @@
 			uniform float time;
 
 			attribute vec3 position;
+			attribute vec3 normal;
 			attribute vec4 color;
 
 			varying vec3 vPosition;
+			varying vec3 vNormal;
 			varying vec4 vColor;
 
 			void main()	{
 
 				vPosition = position;
 				vColor = color;
+				vNormal = normal;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
 
@@ -72,14 +75,16 @@
 			uniform float time;
 
 			varying vec3 vPosition;
+			varying vec3 vNormal;
 			varying vec4 vColor;
 
 			void main()	{
 
 				vec4 color = vec4( vColor );
-				// color.r += sin( vPosition.x * 20.0 + time ) * 0.5;
-				// color.g += sin( vPosition.x * 10.0 + time ) * 0.5;
-				// color.b += sin( vPosition.x * 2.0 + time ) * 0.5;
+
+				color.r += vNormal.x;
+				color.g += vNormal.y;
+				color.b += vNormal.z;
 
 				gl_FragColor = color;
 
@@ -94,7 +99,7 @@
 			var camera, scene, renderer, stats, controls;
 			var timer = 0;
 			var grid, group;
-			var themeColor = 0x111111;
+			var themeColor = 0xffffff;
 
 			var anchorIterator = 1;
 
@@ -113,6 +118,7 @@
 			function Point( x, y, z ) {
 				this.position = new THREE.Vector3( x, y, z );
 				this.normal = new THREE.Vector3( 0, 0, 0 );
+				this.color = new THREE.Color( 0x0099ff );
 				this.anchorId = 0;
 				this.hooks = [];
 			}
@@ -142,14 +148,16 @@
 
 							var x = i*stepX - width/2;
 							var y = j*stepY - height/2;
+
 							// var z = Math.cos( yProgress * Math.PI *1 )*50 * Math.sin( xProgress * Math.PI*2 ) ;
+
 							var z1 = Math.sin( yProgress )*400;
 							var z2 = Math.acos( yProgress-1 )*400-557;
 							var diff = z1 - z2;
 							var stepZ = diff/segW;
 							var z = z2 + stepZ*i;
 
-							var z = 0;
+							// var z = 0;
 
 							scope.points.push( new Point( x, y, z ) );
 
@@ -172,7 +180,7 @@
 				camera.position.z = -1000;
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( themeColor );
+				// scene.background = new THREE.Color( themeColor );
 				// scene.fog = new THREE.Fog( themeColor, 1, 200 );
 
 				var light;
@@ -186,7 +194,7 @@
 
 				var dirLight = new THREE.DirectionalLight( 0x0099ff, 1.5 );
 				dirLight.position.set( 400, 100, 200 );
-				scene.add(dirLight);
+				// scene.add(dirLight);
 
 
 
@@ -220,15 +228,11 @@
 					}
 				}
 
-				function moveAnchor( shape, u, v ) {
+				function moveAnchor( shape, u, v, x, y, z ) {
 
-					var index = v*shape.segW + u;
+					var movepoint = shape.points[ v*shape.segW + u ];
 
-					var movepoint = shape.points[index];
-
-					var moveVector = new THREE.Vector3( 0, 0, 400 );
-
-					var moveX = -400, moveY = 200, moveZ = 200;
+					var moveX = x, moveY = y, moveZ = z;
 
 					movepoint.position.add( new THREE.Vector3( moveX, moveY, moveZ ) );
 
@@ -260,7 +264,7 @@
 
 					setVertices( shape, Dataset );
 
-					setNormals( shape, Dataset );			
+					setNormals( shape, Dataset );		
 
 				}
 
@@ -277,7 +281,6 @@
 
 						}
 					}
-
 				}
 
 				function setVertices( shape, Dataset ) {
@@ -316,7 +319,6 @@
 						Dataset.normals.push( shape.points[index].normal.x, shape.points[index].normal.y, shape.points[index].normal.z );
 
 					}
-
 				}
 
 				function face( shape, Dataset, a, b, c ) {
@@ -328,6 +330,10 @@
 					Dataset.vertices.push( Pa.position.x, Pa.position.y, Pa.position.z );
 					Dataset.vertices.push( Pb.position.x, Pb.position.y, Pb.position.z );
 					Dataset.vertices.push( Pc.position.x, Pc.position.y, Pc.position.z );
+
+					Dataset.colors.push( Math.floor(Pa.color.r*255), Math.floor(Pa.color.g*255), Math.floor(Pa.color.b*255), 255 );
+					Dataset.colors.push( Math.floor(Pb.color.r*255), Math.floor(Pb.color.g*255), Math.floor(Pb.color.b*255), 255 );
+					Dataset.colors.push( Math.floor(Pc.color.r*255), Math.floor(Pc.color.g*255), Math.floor(Pc.color.b*255), 255 );
 
 				}
 
@@ -354,7 +360,7 @@
 
 				}
 
-				var colorshape = new Shape( 1000, 600, 100, 100 );
+				colorshape = new Shape( 1400, 600, 100, 100 );
 				buildFaces( colorshape, Dataset );
 
 				
@@ -373,7 +379,8 @@
 
 
 				pickAnchor( colorshape, 60, 40 );
-				moveAnchor( colorshape, 60, 40 );
+				
+				moveAnchor( colorshape, 60, 40, -40, 100, -200 );
 
 				Dataset02 = {
 
@@ -386,17 +393,22 @@
 
 				buildFaces( colorshape, Dataset02 );
 
-				for( var i=0; i<geometry.attributes.position.array.length; i++ ) {
+				function updateAttributes( Dataset ) {
 
-					geometry.attributes.position.array[i] = Dataset02.vertices[i];
+					for( var i=0; i<geometry.attributes.position.array.length; i++ ) {
 
+						geometry.attributes.position.array[i] = Dataset.vertices[i];
+
+					}
+
+					for( var i=0; i<geometry.attributes.normal.array.length; i++ ) {
+
+						geometry.attributes.normal.array[i] = Dataset.normals[i];
+
+					}
 				}
 
-				for( var i=0; i<geometry.attributes.normal.array.length; i++ ) {
-					geometry.attributes.normal.array[i] = Dataset02.normals[i];
-				}
-
-
+				updateAttributes(Dataset02);
 
 				var material = new THREE.RawShaderMaterial( {
 					uniforms: {
@@ -422,7 +434,7 @@
 					side: THREE.DoubleSide
 				});
 
-				mesh = new THREE.Mesh( geometry, material2 );
+				mesh = new THREE.Mesh( geometry, material );
 				// mesh.position.set( -100, -200, 0 );
 				mesh.rotation.y = Math.PI;
 
@@ -481,13 +493,16 @@
 
 			function render() {
 
-				var timer = Date.now() * 0.001;
+				var time = Date.now() * 0.001;
 				// timer++;
 				// geometry.verticesNeedUpdate = true;
 				// geometry.vertices[0].z = Math.sin(timer)*100;
 
 				// geometry.attributes.position.needsUpdate = true;
 				// geometry.attributes.position.array[2] = Math.sin(timer)*100;
+
+				mesh.material.uniforms.time.value = Math.sin(time);
+
 
 				// mesh.rotation.y = timer;
 				renderer.render( scene, camera );
