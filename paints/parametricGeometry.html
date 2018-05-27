@@ -35,12 +35,12 @@
 
 		<script src="../build/three.js"></script>
 
-		<script src="../examples/js/Detector.js"></script>
-		<script src="../examples/js/libs/stats.min.js"></script>
-		<script src="../examples/js/controls/OrbitControls.js"></script>
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
 
-		<script src="../examples/js/CurveExtras.js"></script>
-		<script src="../examples/js/ParametricGeometries.js"></script>
+		<script src="../js/CurveExtras.js"></script>
+		<script src="../js/ParametricGeometries.js"></script>
 
 		<script>
 
@@ -59,7 +59,7 @@
 				var h = window.innerHeight;
 
 				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 1000 );
-				camera.position.z = 400;
+				camera.position.z = 800;
 
 				scene = new THREE.Scene();
 				//
@@ -78,8 +78,8 @@
 				} );
 
 
-				var width = 800;
-				var height = 200;
+				var width = window.innerWidth;
+				var height = window.innerHeight;
 
 				function testfunc ( u, v ) {
 
@@ -93,7 +93,7 @@
 					}
 
 
-					return new THREE.Vector3( u*800, v*200, z );	
+					return new THREE.Vector3( u*width, v*height, z );	
 
 				}
 
@@ -104,8 +104,11 @@
 					this.anchor = new THREE.Vector3( x, y, z );
 					this.effectradius = radius;
 					this.map = new Map();
+					this.geometry = null;
 
 					this.surround = function ( geometry ) {
+
+						this.geometry = geometry;
 
 						var distance;
 
@@ -115,7 +118,9 @@
 
 							if( distance < this.effectradius ) {
 
-								var weight = 1 - distance/this.effectradius;
+								var factor = distance/this.effectradius;
+
+								var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
 
 								this.map.set( i, weight );
 
@@ -123,21 +128,29 @@
 						}
 					}
 
-					this.move = function ( x, y, z ) {
-						
+					this.moveTo = function ( target_x, target_y, target_z ) {
+
+						var dx = target_x - this.anchor.x;
+						var dy = target_y - this.anchor.y;
+						var dz = target_z - this.anchor.z;
+
+						this.map.forEach( function( value, index, mapObj ) {
+
+							this.geometry.vertices[index].x += dx*value;
+							this.geometry.vertices[index].y += dy*value;
+							this.geometry.vertices[index].z += dz*value;
+
+						});
+
+						geometry.computeVertexNormals();
+
+						this.anchor.set( target_x, target_y, target_z );
+
 					}
 				}
 
-				influence = new Influence( 0,0,0, 200 );
+				influence = new Influence( 200,100,0, 400 );
 				influence.surround( geometry );
-
-
-
-				influence.map.forEach( function( item, index, mapObj ) {
-					geometry.vertices[index].y += 100 * item;
-					geometry.vertices[index].z += 100 * item;
-				});
-				geometry.computeVertexNormals();
 
 
 				object = new THREE.Mesh( geometry, material );
@@ -181,7 +194,7 @@
 
 			function render() {
 
-				var timer = Date.now() * 0.0001;
+				var timer = Date.now() * 0.001;
 
 				// camera.position.x = Math.cos( timer ) * 800;
 				// camera.position.z = Math.sin( timer ) * 800;
@@ -198,6 +211,10 @@
 				// 	}
 
 				// } );
+
+				geometry.normalsNeedUpdate = true;
+				geometry.verticesNeedUpdate = true;
+				influence.moveTo( Math.cos(timer)*100, Math.sin(timer)*100, 100 );
 
 
 				renderer.render( scene, camera );
