@@ -7,7 +7,7 @@
 			* {
 				margin: 0;
 				padding: 0;
-				font-family: sans-serif;
+				font-family: 'SF UI display', sans-serif;
 				box-sizing: border-box;
 			}
 
@@ -25,11 +25,14 @@
 
 
 			h1 {
-				margin-top: 30px;
-				margin-bottom: 40px;
-				margin-left: 20px;
-				font-size: 25px;
-				font-weight: normal;
+				color: #112200;
+				font-size: 40px;
+				font-weight: 200;
+				text-align: center;
+				line-height: 120px;
+			}
+			h1 .spectial {
+				font-weight: 800;
 			}
 
 			h2 {
@@ -38,47 +41,16 @@
 			}
 
 			a {
-				color: #2194CE;
+				color: #000;
 				text-decoration: none;
 			}
-
-			
-			/* panel */
-			#panel {
-				position: fixed;
-				left: 0px;
-				width: 240px;
-				height: 100%;
-				overflow: auto;
-				background: #fafafa;
-			}
-
-			#panel #content {
-				padding: 0px 20px 20px 20px;
-			}
-
-			#panel #content .link {
-				display: block;
-				color: #2194CE;
-				text-decoration: none;
-				cursor: pointer;
-			}
-
-			#panel #content .selected {
-				color: #ff0000;
-			}
-
-			#panel #content .link:hover {
-				text-decoration: underline;
-			}
-
 
 			/* view */
 			#viewer {
-				position: absolute;
-				left: 240px;
-				width: calc( 100% - 240px );
-				height: 100%;
+				position: relative;
+				margin: 0 auto;
+				width: 1080px;
+				height: 540px;
 				overflow: auto;
 			}
 			#painterview {
@@ -86,60 +58,60 @@
 				height: 100%;
 				border: none;
 			}
+
+
+			.wrapper {
+				margin: 0 auto;
+				width: 1200px;
+			}
+				
+			#gallery {
+				text-align: center;
+			}
+
+			.link {
+				display: inline-block;
+				vertical-align: top;
+				margin: 60px 30px;
+				width: 320px;
+			}
+			.link-name {
+				font-size: 20px;
+				line-height: 64px;
+			}
 		</style>
 	</head>
 <body>
-	<!-- left list -->
-	<section id="panel">
-		<h1>PatternPainter</h1>
-		<div id="content"></div>
-	</section>
+	<h1>Pattern<span class="spectial">Painter</span></h1>
 
 	<!-- main view -->
 	<section id="viewer">
-		<iframe id="painterview" name="painterview" allowfullscreen allowvr onmousewheel=""></iframe>
+		<iframe id="painterview" src="./paints/ColorGradients.html" name="painterview" allowfullscreen allowvr onmousewheel=""></iframe>
 	</section>
 
-	<script src="files.js"></script>
-	<script type="text/javascript">
 
-		var container = document.createElement('div');
-		content.appendChild( container );
+	<div class="wrapper">
+		<!-- gallery list -->
+		<section id="gallery">
+			<div id="content"></div>
+		</section>
+
+	</div>
+
+	<script src="files.js"></script>
+	<script src="paints.js"></script>
+	<script type="text/javascript">
 
 		var links = {};
 		var selected = null;
 
-		for ( var key in files ) {
+		for ( var key in paints ) {
 
-			var section = files[ key ];
-
-			var header = document.createElement( 'h2' );
-			header.textContent = key;
-			header.setAttribute( 'data-category', key );
-			container.appendChild( header );
-
-			for ( var i = 0; i < section.length; i ++ ) {
-
-				var file = section[ i ];
-
-				var link = createLink( file );
-				container.appendChild( link );
-
-				links[ file ] = link;
-
-			}
-
-		}
-
-		function createLink(file) {
-
-			var link = document.createElement( 'a' );
-
-			link.className = 'link';
-			link.href = './paints/' + file + '.html';
-			link.textContent = file;
-			link.setAttribute( 'target', 'painterview' );
-			link.addEventListener( 'click', function ( event ) {
+			var linkItem = document.createElement('a');
+			linkItem.className = 'link';
+			linkItem.href = './paints/' + key + '.html';
+			linkItem.setAttribute( 'target', 'painterview' );
+			linkItem.addEventListener( 'click', function ( event ) {
 
 				if ( event.button === 0 ) {
 
@@ -149,24 +121,30 @@
 
 			} );
 
-			return link;
-			
+
+			var img = document.createElement('img');
+			img.src = paints[key].picurl;
+			img.setAttribute('width','100%');
+			var imgwrapper = document.createElement('div');
+			imgwrapper.appendChild(img);
+
+			var paintName = document.createElement('div');
+			paintName.textContent = key;
+			paintName.className = 'link-name';
+
+
+			linkItem.appendChild(imgwrapper);
+			linkItem.appendChild(paintName);
+
+			content.appendChild(linkItem);
+
 		}
 
 		function selectFile(file) {
 
-			// if ( selected !== null ) {
-			// 	links[ selected ].classList.remove( 'selected' );
-			// }
-
-			// links[ file ].classList.add( 'selected' );
-
 			window.location.hash = file;
 			painterview.focus();
 			painterview.src = file + '.html';
-
-
-			// panel.classList.add( 'collapsed' );
 
 			selected = file;
 		}
