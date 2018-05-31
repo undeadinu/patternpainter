@@ -110,10 +110,12 @@
 		</script>
 
 		<script type="text/javascript">
-			// 2d canvas
+
+			// 获取一个canvas的 drawing context
 			var drawingCanvas = document.getElementById( 'drawingcanvas' );
 			var ctx = drawingCanvas.getContext( '2d' );
 
+			// 
 			var colors = Color_fantasy[ Math.floor( Math.random() * Color_fantasy.length ) ];
 
 			ctx.fillStyle = '#' + colors[0];
@@ -174,9 +176,8 @@
 				camera.position.z = 800;
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( '#f291f2' );
-				scene.fog = new THREE.Fog( '#f291f2', 600, 900 );
-				console.log(colors[0])
+				scene.background = new THREE.Color( '#' + colors[0] );
+				scene.fog = new THREE.Fog( '#' + colors[0], 600, 900 );
 				//
 
 				var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
@@ -219,7 +220,7 @@
 				}
 
 				geometry = new THREE.ParametricGeometry( testfunc, 120, 120 );
-
+ 
 				function Influence ( x, y, z, radius ) {
 
 					this.anchor = new THREE.Vector3( x, y, z );
@@ -349,7 +350,7 @@
 				container.appendChild( renderer.domElement );
 
 				stats = new Stats();
-				container.appendChild( stats.dom );
+				// container.appendChild( stats.dom );
 
 				window.addEventListener( 'resize', onWindowResize, false );
 				
@@ -399,8 +400,8 @@
 
 				// } );
 
-				// geometry.normalsNeedUpdate = true;
-				// geometry.verticesNeedUpdate = true;
+				geometry.normalsNeedUpdate = true;
+				geometry.verticesNeedUpdate = true;
 
 				renderer.render( scene, camera );
 

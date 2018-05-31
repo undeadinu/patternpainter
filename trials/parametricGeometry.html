@@ -72,12 +72,17 @@
 				scene.add( camera );
 
 
+				var map_uv = new THREE.TextureLoader().load( '../textures/UV_Grid_Sm.jpg' );
+				map_uv.wrapS = map_uv.wrapT = THREE.RepeatWrapping;
+				map_uv.anisotropy = 16;
+
 				// var material = new THREE.MeshNormalMaterial( { 
 					// side : THREE.DoubleSide,
 					// wireframe : true
 				// } );
 
 				var material = new THREE.MeshBasicMaterial( { 
+					map : map_uv,
 					side : THREE.DoubleSide,
 					// wireframe : true
 				} );
@@ -88,23 +93,28 @@
 				var width = 800;
 				var height = 400;
 
-				function testfunc ( u, v ) {
+				function gaussFunc ( u, v ) {
 
 					var f_u = (( 1 / 2 * 3 ) * Math.exp ( - (u*2-1) * (u*2-1) / 0.2 )); // Gauss Algorithm
 
 					if( v > 0.5 ) {
-						z = f_u * ( -Math.sin( v*Math.PI/2 )*100+100 );
+						z = f_u * ( -Math.sin( v*Math.PI/2 )*200+300 );
 					}else{
-						z = f_u * ( -Math.cos( v*Math.PI/2 )*100+100 );
+						z = f_u * ( -Math.cos( v*Math.PI/2 )*200+300 );
 						// z = 0;
 					}
-
 
 					return new THREE.Vector3( u*width, v*height, z );	
 
 				}
 
-				geometry = new THREE.ParametricGeometry( testfunc, 80, 80 );
+				// function generateFunc ( u, v ) {
+
+				// 	return new THREE.Vector3( u*100, v*100, u*100 );
+
+				// }
+
+				geometry = new THREE.ParametricGeometry( gaussFunc, 30, 30 );
 
 				function Influence ( x, y, z, radius ) {
 
@@ -156,13 +166,15 @@
 					}
 				}
 
-				influence = new Influence( 400, 0, 0, 500 );
-				influence.surround( geometry );
+				// influence = new Influence( 400, 0, 0, 500 );
+				// influence.surround( geometry );
 				
-				
+				scene.add(new THREE.GridHelper(400, 10 ));
+				scene.add( new THREE.AxesHelper( 120 ) );
+
 
 				object = new THREE.Mesh( geometry, material );
-				object.position.set( -width/2, -height/2, 0 );
+				// object.position.set( -width/2, -height/2, 0 );
 				scene.add( object );
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -220,9 +232,9 @@
 
 				// } );
 
-				geometry.normalsNeedUpdate = true;
-				geometry.verticesNeedUpdate = true;
-				influence.moveTo( Math.cos(timer)*100, Math.sin(timer)*100, 100 );
+				// geometry.normalsNeedUpdate = true;
+				// geometry.verticesNeedUpdate = true;
+				// influence.moveTo( Math.cos(timer)*100, Math.sin(timer)*100, 100 );
 
 
 				renderer.render( scene, camera );

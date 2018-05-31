@@ -50,13 +50,14 @@
 				position: relative;
 				margin: 0 auto;
 				width: 1080px;
-				height: 540px;
+				/*height: 540px;*/
 				overflow: auto;
 			}
 			#painterview {
 				width: 100%;
-				height: 100%;
+				height: 540px;
 				border: none;
+				overflow: hidden;
 			}
 
 
@@ -86,7 +87,7 @@
 
 	<!-- main view -->
 	<section id="viewer">
-		<iframe id="painterview" src="./paints/ColorGradients.html" name="painterview" allowfullscreen allowvr onmousewheel=""></iframe>
+		<iframe id="painterview" frameborder="0" scrolling="no" src="./paints/ColorGradients.html" name="painterview" allowfullscreen allowvr onmousewheel=""></iframe>
 	</section>
 
 
