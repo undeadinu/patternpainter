@@ -34,6 +34,7 @@
 				height: 200px;
 			}
 			#drawingcanvas {
+				display: none;
 				width: 100%;
 			}
 		</style>
@@ -160,10 +161,68 @@
 
 			var camera, scene, renderer, stats;
 			var geometry;
+			var influences = [];
+			var anchors = [ new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0) ];
 
 			init();
 
 			animate();
+
+
+ 
+			function Influence ( x, y, z, radius ) {
+
+				this.anchor = new THREE.Vector3( x, y, z );
+				this.effectradius = radius;
+				this.map = new Map();
+				this.geometry = null;
+
+				this.surround = function ( geometry ) {
+
+					this.geometry = geometry;
+
+					var distance;
+
+					for( var i=0; i<geometry.vertices.length ; i++ ) {
+
+						distance = geometry.vertices[i].distanceTo( this.anchor );
+
+						if( distance < this.effectradius ) {
+
+							var factor = distance/this.effectradius;
+
+							var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
+
+							this.map.set( i, weight );
+
+						}
+					}
+				}
+
+				this.moveTo = function ( target_x, target_y, target_z ) {
+
+					if( this.anchor.x === target_x && this.anchor.y === target_y && this.anchor.z === target_z ) {
+						return;
+					}
+
+					var dx = target_x - this.anchor.x;
+					var dy = target_y - this.anchor.y;
+					var dz = target_z - this.anchor.z;
+
+					this.map.forEach( function( value, index, mapObj ) {
+
+						this.geometry.vertices[index].x += dx*value;
+						this.geometry.vertices[index].y += dy*value;
+						this.geometry.vertices[index].z += dz*value;
+
+					});
+
+					geometry.computeVertexNormals();
+
+					this.anchor.set( target_x, target_y, target_z );
+
+				}
+			}
 
 			function init() {
 
@@ -200,8 +259,8 @@
 				var width = window.innerWidth;
 				var height = window.innerHeight;
 
-				var width = 800;
-				var height = 400;
+				var width = 1080;
+				var height = 540;
 
 				function testfunc ( u, v ) {
 
@@ -219,91 +278,33 @@
 
 				}
 
-				geometry = new THREE.ParametricGeometry( testfunc, 120, 120 );
- 
-				function Influence ( x, y, z, radius ) {
+				geometry = new THREE.ParametricGeometry( testfunc, 200, 120 );
 
-					this.anchor = new THREE.Vector3( x, y, z );
-					this.effectradius = radius;
-					this.map = new Map();
-					this.geometry = null;
 
-					this.surround = function ( geometry ) {
 
-						this.geometry = geometry;
 
-						var distance;
+				for( var i=0; i<3; ++i ) {
 
-						for( var i=0; i<geometry.vertices.length ; i++ ) {
+					var ix = Math.random()*(width/3) + (width/3)*i;
+					var iy = Math.random()*height;
+					var iz = Math.random()*200;
 
-							distance = geometry.vertices[i].distanceTo( this.anchor );
+					anchors[i].set( ix, iy, iz );
 
-							if( distance < this.effectradius ) {
+					var influence = new Influence( ix, iy, iz, Math.random()*200 +200 );
+					influence.surround( geometry );
 
-								var factor = distance/this.effectradius;
+					influences.push( influence );
 
-								var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
-
-								this.map.set( i, weight );
-
-							}
-						}
-					}
-
-					this.moveTo = function ( target_x, target_y, target_z ) {
-
-						var dx = target_x - this.anchor.x;
-						var dy = target_y - this.anchor.y;
-						var dz = target_z - this.anchor.z;
-
-						this.map.forEach( function( value, index, mapObj ) {
-
-							this.geometry.vertices[index].x += dx*value;
-							this.geometry.vertices[index].y += dy*value;
-							this.geometry.vertices[index].z += dz*value;
-
-						});
-
-						geometry.computeVertexNormals();
-
-						this.anchor.set( target_x, target_y, target_z );
-
-					}
 				}
 
-				influence = new Influence( 400, 200, 0, 400 );
-				influence.surround( geometry );
-				influence.moveTo( Math.cos( 1.5 )*100 + 200, Math.sin( 1.5 )*100, 100 );
+				// influence = new Influence( 400, 200, 0, 400 );
+				// influence.surround( geometry );
+				// influence.moveTo( Math.cos( 1.5 )*100 + 200, Math.sin( 1.5 )*100, 100 );
 
-				ifln_02 = new Influence( 800, 400, 0, 300 );
-				ifln_02.surround( geometry );
-				ifln_02.moveTo( 600, 100, 200 );
-
-
-				// var colors = [];
-
-				// for( var i=0; i<6561; ++i ) {
-				// 	colors.push( 0.0 );
-				// 	colors.push( 0.0 );
-				// 	colors.push( 0.0 );
-				// 	colors.push( 1.0 );
-				// }
-
-				// var colorAttribute = new THREE.Uint8BufferAttribute( colors, 4 );
-				// // colorAttribute.normalized = true; // this will map the buffer values to 0.0f - +1.0f in the shader
-				// geometry.addAttribute( 'color', colorAttribute );
-
-
-				// geometry.attributes.color.array[0] = 1.0;
-
-				// function changeColorByPoint() {
-
-				// 	var p = new THREE.Vector3( 0, 0, 0 );
-
-
-
-				// }
-
+				// ifln_02 = new Influence( 800, 400, 0, 500 );
+				// ifln_02.surround( geometry );
+				// ifln_02.moveTo( 600, 100, 200 );
 
 
 				// var material = new THREE.MeshNormalMaterial( { 
@@ -402,6 +403,14 @@
 
 				geometry.normalsNeedUpdate = true;
 				geometry.verticesNeedUpdate = true;
+
+
+				for( var i=0; i<influences.length; ++i ) {
+
+					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*300, anchors[i].y + Math.sin( timer+0.1 )*200, anchors[i].z + 200  );
+
+				}
+
 
 				renderer.render( scene, camera );
 
