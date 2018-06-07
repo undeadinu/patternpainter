@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Color Gradients</title>
+		<title>Colorful Balls</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
@@ -34,7 +34,7 @@
 				height: 200px;
 			}
 			#drawingcanvas {
-				display: none;
+				/*display: none;*/
 				width: 100%;
 			}
 		</style>
@@ -63,6 +63,9 @@
 			uniform mat4 modelViewMatrix; // optional
 			uniform mat4 projectionMatrix; // optional
 
+			// lights
+			uniform vec3 uLightDirection;
+
 			attribute vec3 position;
 			attribute vec3 normal;
 			attribute vec4 color;
@@ -83,31 +86,59 @@
 		</script>
 
 		<script id="fragmentShader" type="x-shader/x-fragment">
-			precision mediump float;
-			precision mediump int;
+		precision mediump float;
+		precision mediump int;
 
-			uniform float time01;
-			uniform float time02;
-			uniform float time03;
+		uniform float time01;
+		uniform float time02;
+		uniform float time03;
 
-			uniform vec4 colorFix;
+		uniform vec4 colorFix;
 
-			varying vec3 vPosition;
-			varying vec3 vNormal;
-			varying vec4 vColor;
+		const int numLights = 2;
 
-			void main()	{
+		uniform vec4 uMaterialDiffuse;
 
-				vec4 color = vColor;
+		uniform vec3 uLightDirection_0;
+		uniform vec4 uLightDiffuse_0;
 
-				color.r = colorFix.r;
-				color.g = colorFix.g;
-				color.b = colorFix.b;
-				color.a = 1.0;
+		uniform vec3 uLightDirection_1;
+		uniform vec4 uLightDiffuse_1;
 
-				gl_FragColor = color;
+		varying vec3 vPosition;
+		varying vec3 vNormal;
+		varying vec4 vColor;
 
-			}
+		void main()	{
+
+			// vec4 color = vColor;
+
+			// color.r = vNormal.x + colorFix.r;
+			// color.g = vNormal.y + colorFix.g;
+			// color.b = vNormal.z + colorFix.b;
+			// color.a = 1.0;
+
+			float lambertTerm = 0.0;
+			vec4 finalColor = vec4( 0.0, 0.0, 0.0, 0.0 );
+
+			// for( int i=0; i<numLights; ++i ) {
+
+				lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_0 ) ), 0.0, 1.0 );
+
+                finalColor = uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_0 * lambertTerm;
+
+				lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_1 ) ), 0.0, 1.0 );
+
+                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
+                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
+
+			// }
+
+            finalColor.a = 1.0;
+
+			gl_FragColor = finalColor;
+
+		}
 		</script>
 
 		<script type="text/javascript">
@@ -117,12 +148,12 @@
 			var ctx = drawingCanvas.getContext( '2d' );
 
 			// 
-			var colors = Color_fresh[ Math.floor( Math.random() * Color_fresh.length ) ];
+			var colors = Colors[ Math.floor( Math.random() * Colors.length ) ];
 
 			ctx.fillStyle = '#' + colors[0];
 			ctx.fillRect( 0, 0, 1024, 512 );
 
-			for( var i=0; i<6; ++i ) {
+			for( var i=0; i<20; ++i ) {
 
 				var x = Math.random() * 1024;
 				var y = Math.random() * 512;
@@ -136,8 +167,8 @@
 				var r3 = Math.floor( Math.random()*4 );
 
 				grd.addColorStop( 0.0, '#' + colors[r1] );
-				grd.addColorStop( 0.3, '#' + colors[r2] );
-				grd.addColorStop( 0.6, '#' + colors[r3] );
+				// grd.addColorStop( 0.3, '#' + colors[r2] );
+				// grd.addColorStop( 0.6, '#' + colors[r3] );
 				grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
 
 				ctx.fillStyle = grd;
@@ -167,62 +198,6 @@
 			init();
 
 			animate();
-
-
- 
-			function Influence ( x, y, z, radius ) {
-
-				this.anchor = new THREE.Vector3( x, y, z );
-				this.effectradius = radius;
-				this.map = new Map();
-				this.geometry = null;
-
-				this.surround = function ( geometry ) {
-
-					this.geometry = geometry;
-
-					var distance;
-
-					for( var i=0; i<geometry.vertices.length ; i++ ) {
-
-						distance = geometry.vertices[i].distanceTo( this.anchor );
-
-						if( distance < this.effectradius ) {
-
-							var factor = distance/this.effectradius;
-
-							var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
-
-							this.map.set( i, weight );
-
-						}
-					}
-				}
-
-				this.moveTo = function ( target_x, target_y, target_z ) {
-
-					if( this.anchor.x === target_x && this.anchor.y === target_y && this.anchor.z === target_z ) {
-						return;
-					}
-
-					var dx = target_x - this.anchor.x;
-					var dy = target_y - this.anchor.y;
-					var dz = target_z - this.anchor.z;
-
-					this.map.forEach( function( value, index, mapObj ) {
-
-						this.geometry.vertices[index].x += dx*value;
-						this.geometry.vertices[index].y += dy*value;
-						this.geometry.vertices[index].z += dz*value;
-
-					});
-
-					geometry.computeVertexNormals();
-
-					this.anchor.set( target_x, target_y, target_z );
-
-				}
-			}
 
 			function init() {
 
@@ -262,56 +237,10 @@
 				var width = 1080;
 				var height = 540;
 
-				function testfunc ( u, v ) {
-
-					var f_u = (( 1 / 2 * 3 ) * Math.exp ( - (u*2-1) * (u*2-1) / 0.2 )); // Gauss Algorithm
-
-					if( v > 0.5 ) {
-						z = f_u * ( -Math.sin( v*Math.PI/2 )*100+100 );
-					}else{
-						z = f_u * ( -Math.cos( v*Math.PI/2 )*100+100 );
-						// z = 0;
-					}
-
-
-					return new THREE.Vector3( u*width, v*height, z );	
-
-				}
-
-				geometry = new THREE.ParametricGeometry( testfunc, 200, 120 );
-
-
-
-
-				for( var i=0; i<3; ++i ) {
-
-					var ix = Math.random()*(width/3) + (width/3)*i;
-					// var iy = Math.random()*height;
-					var iy = 300;
-					var iz = Math.random()*200;
-
-					anchors[i].set( ix, iy, iz );
-
-					var influence = new Influence( ix, iy, iz, Math.random()*200 + 400 );
-					influence.surround( geometry );
-
-					influences.push( influence );
-
-				}
-
-				// influence = new Influence( 400, 200, 0, 400 );
-				// influence.surround( geometry );
-				// influence.moveTo( Math.cos( 1.5 )*100 + 200, Math.sin( 1.5 )*100, 100 );
-
-				// ifln_02 = new Influence( 800, 400, 0, 500 );
-				// ifln_02.surround( geometry );
-				// ifln_02.moveTo( 600, 100, 200 );
-
-
-				// var material = new THREE.MeshNormalMaterial( { 
-				// 	side : THREE.DoubleSide,
-				// 	wireframe : true
-				// } );
+				var normalMaterial = new THREE.MeshNormalMaterial( { 
+					side : THREE.DoubleSide,
+					// wireframe : true
+				} );
 
 				var map_uv = new THREE.TextureLoader().load( '../textures/UV_Grid_Sm.jpg' );
 				map_uv.wrapS = map_uv.wrapT = THREE.RepeatWrapping;
@@ -326,25 +255,54 @@
 				material.map.needsUpdate = true;
 				material.transparent = true;
 
-				// var material = new THREE.RawShaderMaterial( {
-				// 	uniforms: {
-				// 		time01 : { value: 1.0 },
-				// 		time02: { value: 1.0 },
-				// 		time03: { value: 1.0 },
-				// 		colorFix: { value: [ 1.6, 0.0, 0.9, 0.0 ] }
-				// 	},
-				// 	vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				// 	fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-				// 	side: THREE.DoubleSide,
-				// 	transparent: true
+				var shaderMaterial = new THREE.RawShaderMaterial( {
+					uniforms: {
+						time01 : { value: 1.0 },
+						time02: { value: 1.0 },
+						time03: { value: 1.0 },
 
-				// } );
+						uMaterialDiffuse: { value: [ 0.0, 0.3, 0.0, 1.0 ] },
+
+						uLightDirection_0: { value: [ -1.0, -1.0, -1.0 ] },
+						uLightDirection_1: { value: [ 1.0, 1.0, 1.0 ] },
+						// uLightDiffuse: { value: [ 0.0, 0.2, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0 ] },
+
+						// uLightDirection: { value: [ 1.0, 1.0, 1.0 ] },
+						uLightDiffuse_0: { value: [ 1.0, 0.0, 0.0, 1.0 ] },
+						uLightDiffuse_1: { value: [ 0.0, 0.0, 1.0, 1.0 ] },
 
 
+						colorFix: { value: [ 0.0, 0.6, 0.9, 0.0 ] }
+					},
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+					side: THREE.DoubleSide,
+					transparent: true
 
-				object = new THREE.Mesh( geometry, material );
-				object.position.set( -width/2, -height/2, 0 );
-				scene.add( object );
+				} );
+
+				geometry = new THREE.SphereBufferGeometry( 100, 64, 64 );
+
+				object = new THREE.Mesh( geometry, shaderMaterial );
+				object.position.set( -200, 9, 0 );
+				// scene.add( object );
+
+				for( var i=0; i<10; ++i  ){
+
+					var obj = new THREE.Mesh( geometry, material );
+
+					obj.position.set( Math.random()*width - width/2, 
+										Math.random()*height - height/2, 
+										Math.random()*200 - 100 );
+
+					var scale = Math.random() * 2;
+
+					obj.scale.set( scale, scale, scale );
+
+					// obj.rotation.set( 0, 0, Math.random()*3 );
+
+					scene.add( obj );
+				}
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -391,26 +349,16 @@
 
 				// camera.lookAt( scene.position );
 
-				// scene.traverse( function( object ) {
+				scene.traverse( function( object ) {
 
-				// 	if ( object.isMesh === true ) {
+					if ( object.isMesh === true ) {
 
-				// 		object.rotation.x = timer * 5;
-				// 		object.rotation.y = timer * 2.5;
+						object.position.z += Math.sin( timer )*2;
 
-				// 	}
+					}
 
-				// } );
+				} );
 
-				geometry.normalsNeedUpdate = true;
-				geometry.verticesNeedUpdate = true;
-
-
-				for( var i=0; i<influences.length; ++i ) {
-
-					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*300, anchors[i].y + Math.sin( timer+0.1 )*200, anchors[i].z + 200  );
-
-				}
 
 
 				renderer.render( scene, camera );
