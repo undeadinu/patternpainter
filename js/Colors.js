@@ -6,13 +6,13 @@ var Color_scifi = [
 ];
 
 var Color_fantasy = [
-  ["b7f7d3","70e8db","7fa5ed","8259f2"],
-  ["a8ede5","fff9ed","f9a0bc","b085ff"],
-  ["a82dfc","c163ff","f7edfc","7a07f9"],
-  ["5ba8ff","fcff8e","ffdd68","7c70ff"],
-  ["ffaae5","c6f4ff","f4fcad","d89eff"],
-  ["f291f2","ffd18e","f4f29e","af60ea"],
-  ["ea2ba3","f99696","f4c996","bf0caa"]
+  // ["b7f7d3","70e8db","7fa5ed","8259f2"],
+  // ["a8ede5","fff9ed","f9a0bc","b085ff"],
+  ["a82dfc","FF637F","FF9544","7a07f9"],
+  // ["5ba8ff","fcff8e","ffdd68","7c70ff"],
+  // ["ffaae5","c6f4ff","f4fcad","d89eff"],
+  // ["f291f2","ffd18e","f4f29e","af60ea"],
+  // ["ea2ba3","f99696","f4c996","bf0caa"]
    
 ];
 

@@ -11,7 +11,7 @@ var paints = {
 	'ColorfulBalls' : {
 
 		name: 'Colorful Balls',
-		url : 'ColorGradients.html',
+		url : 'ColorfulBalls.html',
 		picurl : 'images/colorful-balls.png'
 
 	},

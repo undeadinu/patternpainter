@@ -37,6 +37,12 @@
 				display: none;
 				width: 100%;
 			}
+
+			#addDraw {
+				width: 200px; 
+				height: 20px;
+				background-color: #fff;
+			}
 		</style>
 	</head>
 	<body>
@@ -44,6 +50,7 @@
 		<div id="container"></div>
 		<div id="canvas2d_wrapper">
 			<canvas id="drawingcanvas" width="1024" height="512" ></canvas>
+			<button id="addDraw" onclick="addCanvasDraw()"></button>
 		</div>
 
 		<script src="../build/three.js"></script>
@@ -117,12 +124,12 @@
 			var ctx = drawingCanvas.getContext( '2d' );
 
 			// 
-			var colors = Color_fresh[ Math.floor( Math.random() * Color_fresh.length ) ];
+			var colors = Color_fantasy[ Math.floor( Math.random() * Color_fantasy.length ) ];
 
 			ctx.fillStyle = '#' + colors[0];
 			ctx.fillRect( 0, 0, 1024, 512 );
 
-			for( var i=0; i<6; ++i ) {
+			for( var i=0; i<20; ++i ) {
 
 				var x = Math.random() * 1024;
 				var y = Math.random() * 512;
@@ -136,8 +143,8 @@
 				var r3 = Math.floor( Math.random()*4 );
 
 				grd.addColorStop( 0.0, '#' + colors[r1] );
-				grd.addColorStop( 0.3, '#' + colors[r2] );
-				grd.addColorStop( 0.6, '#' + colors[r3] );
+				// grd.addColorStop( 0.3, '#' + colors[r2] );
+				// grd.addColorStop( 0.6, '#' + colors[r3] );
 				grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
 
 				ctx.fillStyle = grd;
@@ -145,6 +152,28 @@
 
 			}
 
+			function addCanvasDraw() {
+
+				var x = Math.random() * 1024;
+				var y = Math.random() * 512;
+				var radius_inner = Math.random() * 50 + 50;
+				var radius_outer = Math.random() * 100 + 400;
+
+				var grd = ctx.createRadialGradient( x, y, radius_inner, x, y, radius_outer);
+
+				var r1 = Math.floor( Math.random()*4 );
+				var r2 = Math.floor( Math.random()*4 );
+				var r3 = Math.floor( Math.random()*4 );
+
+				grd.addColorStop( 0.0, '#' + colors[r1] );
+				// grd.addColorStop( 0.3, '#' + colors[r2] );
+				// grd.addColorStop( 0.6, '#' + colors[r3] );
+				grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
+
+				ctx.fillStyle = grd;
+				ctx.fillRect( 0, 0, 1024, 512 );
+
+			}
 
 			// var img = new Image();
 			// img.src = '../textures/color.png';
@@ -160,14 +189,13 @@
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var camera, scene, renderer, stats;
-			var geometry;
+			var geometry, material;
 			var influences = [];
 			var anchors = [ new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0) ];
 
 			init();
 
 			animate();
-
 
  
 			function Influence ( x, y, z, radius ) {
@@ -235,8 +263,9 @@
 				camera.position.z = 800;
 
 				scene = new THREE.Scene();
-				scene.background = new THREE.Color( '#' + colors[0] );
-				scene.fog = new THREE.Fog( '#' + colors[0], 600, 900 );
+				scene.background = new THREE.Color( '#' + colors[2] );
+				// scene.background = new THREE.Color( 0x000000 );
+				scene.fog = new THREE.Fog( '#' + colors[0], 600, 800 );
 				//
 
 				var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
@@ -259,8 +288,8 @@
 				var width = window.innerWidth;
 				var height = window.innerHeight;
 
-				var width = 1080;
-				var height = 540;
+				var width = 1200;
+				var height = 600;
 
 				function testfunc ( u, v ) {
 
@@ -286,8 +315,8 @@
 				for( var i=0; i<3; ++i ) {
 
 					var ix = Math.random()*(width/3) + (width/3)*i;
-					// var iy = Math.random()*height;
-					var iy = 300;
+					var iy = Math.random()*height;
+					// var iy = 300;
 					var iz = Math.random()*200;
 
 					anchors[i].set( ix, iy, iz );
@@ -323,7 +352,6 @@
 					// color: 0xff0000
 				} );
 				material.map = new THREE.Texture( drawingCanvas );
-				material.map.needsUpdate = true;
 				material.transparent = true;
 
 				// var material = new THREE.RawShaderMaterial( {
@@ -345,6 +373,9 @@
 				object = new THREE.Mesh( geometry, material );
 				object.position.set( -width/2, -height/2, 0 );
 				scene.add( object );
+
+				scene.add( new THREE.AxesHelper( 120 ) );
+
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -405,10 +436,14 @@
 				geometry.normalsNeedUpdate = true;
 				geometry.verticesNeedUpdate = true;
 
+				material.map.needsUpdate = true;
+
 
 				for( var i=0; i<influences.length; ++i ) {
 
-					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*300, anchors[i].y + Math.sin( timer+0.1 )*200, anchors[i].z + 200  );
+					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*400, 
+										anchors[i].y + Math.sin( timer+0.1 )*100, 
+										anchors[i].z + 400  );
 
 				}
 
