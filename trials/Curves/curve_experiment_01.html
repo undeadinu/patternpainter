@@ -32,14 +32,14 @@
 
 		<div id="container"></div>
 
-		<script src="../build/three.js"></script>
+		<script src="../../build/three.js"></script>
 
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
-		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../../js/Detector.js"></script>
+		<script src="../../js/libs/stats.min.js"></script>
+		<script src="../../js/controls/OrbitControls.js"></script>
 
-		<script src="../js/CurveExtras.js"></script>
-		<script src="../js/ParametricGeometries.js"></script>
+		<script src="../../js/CurveExtras.js"></script>
+		<script src="../../js/ParametricGeometries.js"></script>
 
 		<script>
 
@@ -64,6 +64,10 @@
 
 				scene = new THREE.Scene();
 
+				var themeColor = 0x001122;
+				scene.background = new THREE.Color( themeColor );
+				scene.fog = new THREE.Fog( themeColor, 400, 1000 );
+
 				
 				var curve_ellipse = new THREE.EllipseCurve(
 					0,  0,            // ax, aY
@@ -81,9 +85,9 @@
 				curve_CatmullRom = new THREE.CatmullRomCurve3([
 
 					new THREE.Vector3( -640, -40, -200 ),
-					new THREE.Vector3( -540, -30, -100 ),
-					new THREE.Vector3( 140, 30, 0 ),
-					new THREE.Vector3( 640, -40, 0 ),
+					new THREE.Vector3( -540, -30, 300 ),
+					new THREE.Vector3( 140, 30, 300 ),
+					new THREE.Vector3( 640, -40, -200 ),
 
 				]);
 
@@ -105,7 +109,7 @@
 				scene.add( curve );
 
 				// test cube
-				var geo = new THREE.SphereGeometry( 4, 4, 4 );
+				var geo = new THREE.SphereGeometry( 2, 4, 4 );
 				var mat = new THREE.MeshBasicMaterial({color:0x0099ffff});
 				pointsgroup = new THREE.Group();
 
@@ -115,7 +119,7 @@
 
 					var box = new THREE.Mesh( geo, mat );
 
-					box.position.set( arrpos[i].x, arrpos[i].y, 0 );
+					box.position.set( arrpos[i].x, arrpos[i].y, arrpos[i].z );
 
 					var tangent = curve_CatmullRom.getTangent( i/20 );
 
@@ -129,7 +133,7 @@
 				scene.add(pointsgroup);
 
 				var gridhelper = new THREE.GridHelper( 400, 10 );
-				gridhelper.rotation.x= Math.PI/2;
+				// gridhelper.rotation.x= Math.PI/2;
 				// scene.add(gridhelper);
 
 
@@ -187,8 +191,12 @@
 					var tangent = curve_CatmullRom.getTangent( i/20 );
 					var angle = Math.atan( tangent.y/tangent.x );
 
-					pointsgroup.children[i].position.set( pos.x, pos.y, 0 );
+					pointsgroup.children[i].position.set( pos.x, pos.y, pos.z );
 					pointsgroup.children[i].rotation.set( 0, 0, angle );
+
+					var factor = ( count + i*10 )*Math.PI/180;
+
+					pointsgroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
 
 				}
 
