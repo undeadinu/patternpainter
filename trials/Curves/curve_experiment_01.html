@@ -82,59 +82,101 @@
 					new THREE.Vector3( 400, -40, 0 ) 
 				);
 
-				curve_CatmullRom = new THREE.CatmullRomCurve3([
 
-					new THREE.Vector3( -640, -40, -200 ),
-					new THREE.Vector3( -540, -30, 300 ),
-					new THREE.Vector3( 140, 30, 300 ),
-					new THREE.Vector3( 640, -40, -200 ),
-
-				]);
-
-
-				var points = curve_CatmullRom.getPoints( 20 );
-				curveGeo = new THREE.BufferGeometry();
-				curveGeo.setFromPoints( points );
-
-				var material = new THREE.LineDashedMaterial( { 
+				var lineMaterial = new THREE.LineDashedMaterial( { 
 					color : 0x0099ff, 
+					transparent: true,
+					opacity: 0.3,
+					blending: THREE['AdditiveBlending'],
 					linewidth: 2.0, 
 					scale: 1,
 					dashSize: 3,
 					gapSize: 1,
 				} );
 
-				// Create the final object to add to the scene
-				curve = new THREE.Line( curveGeo, material );
-				scene.add( curve );
+				var dotMaterial = new THREE.MeshBasicMaterial( { 
+					color:0x00ffff,
+					transparent: true,
+					blending: THREE['AdditiveBlending']
+				});
+				var dotGeometry = new THREE.SphereGeometry( 2, 4, 4 );
 
-				// test cube
-				var geo = new THREE.SphereGeometry( 2, 4, 4 );
-				var mat = new THREE.MeshBasicMaterial({color:0x0099ffff});
-				pointsgroup = new THREE.Group();
 
-				var	arrpos = curve_CatmullRom.getPoints( 20 );
+				function Antenna( vectors ) {
 
-				for( var i =0; i<=20; ++i ) {
+					this.curve = new THREE.CatmullRomCurve3( vectors );
 
-					var box = new THREE.Mesh( geo, mat );
+					this.points = this.curve.getPoints( 20 );
 
-					box.position.set( arrpos[i].x, arrpos[i].y, arrpos[i].z );
+					this.line_geo = new THREE.BufferGeometry().setFromPoints( this.points );
 
-					var tangent = curve_CatmullRom.getTangent( i/20 );
+					this.line = new THREE.Line( this.line_geo, lineMaterial );
 
-					var angle = Math.atan( tangent.y/tangent.x );
-					box.rotation.set( 0, 0, angle );
+					this.dots = new THREE.Group();
 
-					pointsgroup.add( box );
+					for( var i=0; i<=20; ++i ) {
+
+						var dot = new THREE.Mesh( dotGeometry, dotMaterial );
+
+						var scale = Math.random()*3;
+
+						dot.scale.set( scale, scale, scale );
+
+						dot.position.set( this.points[i].x, this.points[i].y, this.points[i].z );
+
+						this.dots.add( dot );
+
+					}
+
+				}	
+
+				antennaGroup = [];
+				linesgroup = new THREE.Group();
+
+				for( var i=0; i<25; ++i ) {
+
+					var randx = Math.random()*100;
+					var randy = Math.random()*100;
+					var randz = Math.random()*400 - 400;
+
+					var a = new Antenna([ 
+						new THREE.Vector3( -640+randx, -40 + randy, -200+randz ),
+						new THREE.Vector3( -240+randx, -10 + randy, 300+randz ),
+						new THREE.Vector3( 240+randx, -40 + randy, 300+randz ),
+						new THREE.Vector3( 640+randx, -10 + i*20, -200+randz ),
+					]);
+
+					antennaGroup.push( a );
+
+					linesgroup.add( a.line );
+
+					scene.add( a.dots );
 
 				}
 
-				scene.add(pointsgroup);
+				// scene.add(linesgroup);
 
-				var gridhelper = new THREE.GridHelper( 400, 10 );
-				// gridhelper.rotation.x= Math.PI/2;
-				// scene.add(gridhelper);
+
+				// for( var i =0; i<=20; ++i ) {
+
+				// 	var box = new THREE.Mesh( geo, mat );
+
+				// 	box.position.set( arrpos[i].x, arrpos[i].y, arrpos[i].z );
+
+				// 	var tangent = curve_CatmullRom.getTangent( i/20 );
+
+				// 	var angle = Math.atan( tangent.y/tangent.x );
+				// 	box.rotation.set( 0, 0, angle );
+
+				// 	pointsgroup.add( box );
+
+				// }
+
+				// scene.add(pointsgroup);
+
+
+				// GRID HELPER
+				// scene.add(new THREE.GridHelper( 400, 10 ));
 
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -177,26 +219,54 @@
 
 				var factor = count*Math.PI/180;
 
-				curve_CatmullRom.points[0].y += Math.sin(factor)*2;
-				curve_CatmullRom.points[1].y += Math.sin(factor+30)*1;
-				curve_CatmullRom.points[2].y += Math.sin(factor+60)*2;
-				// curve_CatmullRom.points[3].y += Math.sin(factor+200)*1;
 
-				var points = curve_CatmullRom.getPoints( 20 );
-				curve.geometry.setFromPoints(points);
+				// for( var i=0; i<5; ++i ) {
+
+				// 	var a = antennaGroup[i];
+
+				// 	a.curve.points[0].y += Math.sin(factor)*2;
+
+				// 	a.points = a.curve.getPoints(20);
+
+
+
+				// }
+
+
+				// curve_CatmullRom.points[0].y += Math.sin(factor)*2;
+				// curve_CatmullRom.points[1].y += Math.sin(factor+30)*1;
+				// curve_CatmullRom.points[2].y += Math.sin(factor+60)*2;
+				// // curve_CatmullRom.points[3].y += Math.sin(factor+200)*1;
+
+				// var points = curve_CatmullRom.getPoints( 20 );
+				// curve.geometry.setFromPoints(points);
 				
-				for( var i=0; i<=20; ++i ) {
+				// for( var i=0; i<=20; ++i ) {
 
-					var pos = curve_CatmullRom.getPointAt( i/20 );
-					var tangent = curve_CatmullRom.getTangent( i/20 );
-					var angle = Math.atan( tangent.y/tangent.x );
+				// 	var pos = curve_CatmullRom.getPointAt( i/20 );
+				// 	var tangent = curve_CatmullRom.getTangent( i/20 );
+				// 	var angle = Math.atan( tangent.y/tangent.x );
 
-					pointsgroup.children[i].position.set( pos.x, pos.y, pos.z );
-					pointsgroup.children[i].rotation.set( 0, 0, angle );
+				// 	pointsgroup.children[i].position.set( pos.x, pos.y, pos.z );
+				// 	pointsgroup.children[i].rotation.set( 0, 0, angle );
 
-					var factor = ( count + i*10 )*Math.PI/180;
+				// 	var factor = ( count + i*10 )*Math.PI/180;
 
-					pointsgroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
+				// 	pointsgroup.children[i].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
+
+				// }
+
+				for( var i=0; i<25; ++i ) {
+
+					for( var p=0; p<20; ++p ) {
+
+						var factor = ( count + p*10 + i*2 )*Math.PI/180;
+
+						antennaGroup[i].dots.children[p].scale.set( Math.sin(factor)*2, Math.sin(factor)*2, Math.sin(factor)*2 );
+
+
+					}
+
 
 				}
 
