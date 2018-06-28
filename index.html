@@ -20,18 +20,20 @@
 				margin: 0px;
 				height: 100%;
 				color: #555;
-				overflow: hidden;
+				/*overflow: hidden;*/
 			}
 
 
-			h1 {
+			.header {
+				position: fixed;
 				color: #112200;
 				font-size: 40px;
 				font-weight: 200;
 				text-align: center;
 				line-height: 120px;
+				z-index: 99;
 			}
-			h1 .spectial {
+			.header .spectial {
 				font-weight: 800;
 			}
 
@@ -49,13 +51,13 @@
 			#viewer {
 				position: relative;
 				margin: 0 auto;
-				width: 1080px;
-				/*height: 540px;*/
+				width: 100%;
+				height: 100%;
 				overflow: auto;
 			}
 			#painterview {
 				width: 100%;
-				height: 540px;
+				height: 99%;
 				border: none;
 				overflow: hidden;
 			}
@@ -83,7 +85,7 @@
 		</style>
 	</head>
 <body>
-	<h1>Pattern<span class="spectial">Painter</span></h1>
+	<div class="header">Pattern<span class="spectial">Painter</span></div>
 
 	<!-- main view -->
 	<section id="viewer">

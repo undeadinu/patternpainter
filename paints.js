@@ -22,6 +22,15 @@ var paints = {
 		url : 'ColorGradients.html',
 		picurl : 'images/grid-objects.png'
 
+	},
+
+	'G' : {
+
+		name : 'Grid Objects',
+		url : 'ColorGradients.html',
+		picurl : 'images/grid-objects.png'
+
 	}
+
 
 }
