@@ -86,59 +86,59 @@
 		</script>
 
 		<script id="fragmentShader" type="x-shader/x-fragment">
-		precision mediump float;
-		precision mediump int;
+			precision mediump float;
+			precision mediump int;
 
-		uniform float time01;
-		uniform float time02;
-		uniform float time03;
+			uniform float time01;
+			uniform float time02;
+			uniform float time03;
 
-		uniform vec4 colorFix;
+			uniform vec4 colorFix;
 
-		const int numLights = 2;
+			const int numLights = 2;
 
-		uniform vec4 uMaterialDiffuse;
+			uniform vec4 uMaterialDiffuse;
 
-		uniform vec3 uLightDirection_0;
-		uniform vec4 uLightDiffuse_0;
+			uniform vec3 uLightDirection_0;
+			uniform vec4 uLightDiffuse_0;
 
-		uniform vec3 uLightDirection_1;
-		uniform vec4 uLightDiffuse_1;
+			uniform vec3 uLightDirection_1;
+			uniform vec4 uLightDiffuse_1;
 
-		varying vec3 vPosition;
-		varying vec3 vNormal;
-		varying vec4 vColor;
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			varying vec4 vColor;
 
-		void main()	{
+			void main()	{
 
-			// vec4 color = vColor;
+				// vec4 color = vColor;
 
-			// color.r = vNormal.x + colorFix.r;
-			// color.g = vNormal.y + colorFix.g;
-			// color.b = vNormal.z + colorFix.b;
-			// color.a = 1.0;
+				// color.r = vNormal.x + colorFix.r;
+				// color.g = vNormal.y + colorFix.g;
+				// color.b = vNormal.z + colorFix.b;
+				// color.a = 1.0;
 
-			float lambertTerm = 0.0;
-			vec4 finalColor = vec4( 0.0, 0.0, 0.0, 0.0 );
+				float lambertTerm = 0.0;
+				vec4 finalColor = vec4( 0.0, 0.0, 0.0, 0.0 );
 
-			// for( int i=0; i<numLights; ++i ) {
+				// for( int i=0; i<numLights; ++i ) {
 
-				lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_0 ) ), 0.0, 1.0 );
+					lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_0 ) ), 0.0, 1.0 );
 
-                finalColor = uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_0 * lambertTerm;
+	                finalColor = uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_0 * lambertTerm;
 
-				lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_1 ) ), 0.0, 1.0 );
+					lambertTerm = clamp( dot( normalize( vNormal ), -normalize( uLightDirection_1 ) ), 0.0, 1.0 );
 
-                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
-                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
+	                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
+	                finalColor += uMaterialDiffuse*(1.0-lambertTerm) + uLightDiffuse_1 * lambertTerm;
 
-			// }
+				// }
 
-            finalColor.a = 1.0;
+	            finalColor.a = 1.0;
 
-			gl_FragColor = finalColor;
+				gl_FragColor = finalColor;
 
-		}
+			}
 		</script>
 
 		<script type="text/javascript">

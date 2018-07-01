@@ -1,3 +1,8 @@
+var Color_fantasy = [
+  [ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "43FFB3", "5E71FF" ], 
+  [ "9B50ED", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ], 
+];
+
 var Color_scifi = [
 	[ "40FFFA", "1B68B8", "36D9FF", "001122"],	
   [ "48E2B5", "EDEDED", "295B66", "161133"],
@@ -5,14 +10,14 @@ var Color_scifi = [
   ["d1f9f9","59ced6","169bf9","0a004a"]
 ];
 
-var Color_fantasy = [
-  // ["b7f7d3","70e8db","7fa5ed","8259f2"],
-  // ["a8ede5","fff9ed","f9a0bc","b085ff"],
+var Color_fancy_02 = [
+  ["b7f7d3","70e8db","7fa5ed","8259f2"],
+  ["a8ede5","fff9ed","f9a0bc","b085ff"],
   ["a82dfc","FF637F","FF9544","7a07f9"],
-  // ["5ba8ff","fcff8e","ffdd68","7c70ff"],
-  // ["ffaae5","c6f4ff","f4fcad","d89eff"],
-  // ["f291f2","ffd18e","f4f29e","af60ea"],
-  // ["ea2ba3","f99696","f4c996","bf0caa"]
+  ["5ba8ff","fcff8e","ffdd68","7c70ff"],
+  ["ffaae5","c6f4ff","f4fcad","d89eff"],
+  ["f291f2","ffd18e","f4f29e","af60ea"],
+  ["ea2ba3","f99696","f4c996","bf0caa"]
    
 ];
 

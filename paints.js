@@ -2,7 +2,7 @@ var paints = {
 
 	'ColorGradients' : {
 
-		name : 'Color Gradients',
+		name : 'Colorful Gradients',
 		url : 'ColorGradients.html',
 		picurl : 'images/color-gradients.png'
 
@@ -16,21 +16,13 @@ var paints = {
 
 	},
 
-	'GridObjects' : {
+	'Scifidots' : {
 
-		name : 'Grid Objects',
-		url : 'ColorGradients.html',
+		name : 'Sci-fi dots',
+		url : 'scifidots.html',
 		picurl : 'images/grid-objects.png'
 
 	},
-
-	'G' : {
-
-		name : 'Grid Objects',
-		url : 'ColorGradients.html',
-		picurl : 'images/grid-objects.png'
-
-	}
 
 
 }
