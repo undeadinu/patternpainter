@@ -19,7 +19,7 @@ var paints = {
 	'Scifidots' : {
 
 		name : 'Sci-fi dots',
-		url : 'scifidots.html',
+		url : 'scifidots_dof.html',
 		picurl : 'images/grid-objects.png'
 
 	},

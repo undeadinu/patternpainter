@@ -239,14 +239,14 @@
 				new THREE.Vector3(0,0,0) 
 			];
 
-			init();
+			// init();
 
-			// var img = new Image();
-			// img.src = '../textures/color01.jpg';
-			// img.onload = function() {
-			// 	ctx.drawImage(img,0,0);
-			// 	init();
-			// }
+			var img = new Image();
+			img.src = '../textures/color01.jpg';
+			img.onload = function() {
+				ctx.drawImage(img,0,0);
+				init();
+			}
 
 			animate();
 

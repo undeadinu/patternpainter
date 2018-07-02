@@ -108,16 +108,8 @@
  
 				var geo = new THREE.SphereGeometry( 1, 20, 10 );
 				var mat = new THREE.MeshNormalMaterial();
-
-				for( var i=0; i<1; ++i ) {
-
-					var obj = new THREE.Mesh( geo, mat );
-
-					obj.position.set( 0, 0, 5 );
-
-					scene.add( obj );
-
-				}
+				var obj = new THREE.Mesh( geo, mat );
+				scene.add(obj);
 
 				scene.add( new THREE.AxesHelper( 120 ) );
 
@@ -133,6 +125,8 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				effectController  = {
+
+					positionz: 0,
 
 					enabled: true,
 					jsDepthCalculation: true,
@@ -172,9 +166,13 @@
 					postprocessing.bokeh_uniforms[ 'zfar' ].value = camera.far;
 					camera.setFocalLength(effectController.focalLength);
 
+					obj.position.z = effectController.positionz;
+
 				};
 
 				var gui = new dat.GUI();
+
+				gui.add( effectController, 'positionz', -400, 400, 4 ).onChange( matChanger );
 
 				gui.add( effectController, "enabled" ).onChange( matChanger );
 				gui.add( effectController, "jsDepthCalculation" ).onChange( matChanger );
