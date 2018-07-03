@@ -39,7 +39,7 @@
 				height: 200px;
 			}
 			#drawingcanvas {
-				display: none;
+				/*display: none;*/
 				width: 100%;
 			}
 
@@ -485,13 +485,13 @@
 				material.map.needsUpdate = true;
 
 
-				// for( var i=0; i<influences.length; ++i ) {
+				for( var i=0; i<influences.length; ++i ) {
 
-				// 	influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*400, 
-				// 						anchors[i].y + Math.sin( timer+0.1 )*100, 
-				// 						anchors[i].z + 400  );
+					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*400, 
+										anchors[i].y + Math.sin( timer+0.1 )*100, 
+										anchors[i].z + 400  );
 
-				// }
+				}
 
 
 				renderer.render( scene, camera );

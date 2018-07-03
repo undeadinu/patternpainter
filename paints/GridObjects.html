@@ -46,31 +46,42 @@
 			var grid, group;
 			var themeColor = 0x0099ff;
 
-			function Grid( horz, vert, unitsize_h, unitsize_v ) {
-				this.horz = horz;
-				this.vert = vert;
-				this.unitsize_h = unitsize_h;
-				this.unitsize_v = unitsize_v;
-				this.totalNum = horz * vert;
-				this.totalWidth = (horz-1)*unitsize_h;
-				this.totalHeight = (vert-1)*unitsize_v;
+			function Grid( x, y, z, unitsize_width, unitsize_height, unitsize_depth ) {
+				this.x = x;
+				this.y = y;
+				this.z = z;
+
+				this.unitsize_width = unitsize_width;
+				this.unitsize_height = unitsize_height;
+				this.unitsize_depth = unitsize_depth;
+
+				this.totalNum = this.x * this.y * this.z;
+
+				this.totalWidth = (this.x-1)*unitsize_width;
+				this.totalHeight = (this.y-1)*unitsize_height;
+				this.totalDepth = (this.z-1)*unitsize_depth;
+
 				this.matrix = [];
 
 				this.make();
 			}
+
 			Grid.prototype.make = function() {
-				for( var v=0; v<this.vert; ++v ) {
-					for( var h=0; h<this.horz; ++h ) {
+				for( var d=0; d<this.z; ++d ) {
+					for( var v=0; v<this.y; ++v ) {
+						for( var h=0; h<this.x; ++h ) {
 
-						var x = h * this.unitsize_h - this.totalWidth/2 ;
-						var y = v * this.unitsize_v - this.totalHeight/2 ;
-						var z = 0;
+							var x = h * this.unitsize_width - this.totalWidth/2 ;
+							var y = v * this.unitsize_height - this.totalHeight/2;
+							var z = d * this.unitsize_depth - this.totalDepth/2;
 
-						var pos = new THREE.Vector3( x, y, z );
+							var pos = new THREE.Vector3( x, y, z );
 
-						this.matrix.push(pos);
+							this.matrix.push(pos);
+						}
 					}
 				}
+
 			};
 
 			init();
@@ -84,13 +95,15 @@
 				var h = window.innerHeight;
 
 				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 4000 );
+				camera.position.x = 800;
+				camera.position.y = 800;
 				camera.position.z = 800;
 
 
 				// camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				// camera.position.z = 400;
 
-				grid = new Grid( 10, 4, 100, 40 );
+				grid = new Grid( 12, 1, 12, 300, 200, 300 );
 
 
 				scene = new THREE.Scene();
@@ -98,26 +111,31 @@
 				// scene.fog = new THREE.Fog( themeColor, 1, 500 );
 
 				var ambientLight = new THREE.AmbientLight( themeColor, 0.7 );
-				scene.add( ambientLight );
+				// scene.add( ambientLight );
 
 				var pointLight = new THREE.PointLight( 0xffffff, 0.8 );
 				pointLight.position.set( -200, 100, 0 );
-				// camera.add( pointLight );
-				scene.add( pointLight );
+				// scene.add( pointLight );
 
-				var material = new THREE.MeshLambertMaterial( {
-					color: themeColor,
+				var material = new THREE.MeshBasicMaterial( {
+					color: 0x00ffff,
 				});
 
-				//
+
+				// 
 				group = new THREE.Object3D();
+
 				for( var i=0; i<grid.totalNum; ++i ) {
-					var object = new THREE.Mesh( new THREE.SphereGeometry( 15, 40, 40 ), material );
+					var object = new THREE.Mesh( new THREE.ConeBufferGeometry( 15, 40, 40 ), material );
 					object.position.set( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
 					group.add( object );
 				}
 
-				scene.add(group)
+				// group.rotation.x = Math.PI/2;
+
+				scene.add(group);
+
+
 				//
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
