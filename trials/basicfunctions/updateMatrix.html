@@ -32,11 +32,11 @@
 
 	<body>
 		<div id="container"></div>
-		<script src="../build/three.js"></script>
-		<script src="../js/Detector.js"></script>
-		<script src="../js/libs/stats.min.js"></script>
+		<script src="../../build/three.js"></script>
+		<script src="../../js/Detector.js"></script>
+		<script src="../../js/libs/stats.min.js"></script>
 
-		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../../js/controls/OrbitControls.js"></script>
 
 		<script>
 
@@ -52,7 +52,7 @@
 
 			function init() {
 
-				var container = document.getElementById( 'container' );
+				stats = new Stats();
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				camera.position.z = 400;
@@ -63,20 +63,23 @@
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 
-				container.appendChild( renderer.domElement );
-
-				stats = new Stats();
-				container.appendChild( stats.dom );
 
 				//
 
 
-				var box = new THREE.Mesh( new THREE.BoxGeometry(10,10,10), new THREE.MeshNormalMaterial() );
-				scene.add(box);
-				box.matrixAutoUpdate = false;
+				var cubegeo = new THREE.BoxGeometry( 10, 10, 10 );
+				var mat = new THREE.MeshNormalMaterial();
 
+				var cube = new THREE.Mesh( cubegeo, mat );
 
+				scene.add(cube);
+
+				// 
 				window.addEventListener( 'resize', onWindowResize, false );
+
+				container.appendChild( stats.dom );
+				container.appendChild( renderer.domElement );
+
 				var controls = new THREE.OrbitControls( camera, renderer.domElement );
 
 			}

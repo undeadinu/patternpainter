@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Update Draw Range</title>
+	<style type="text/css">
+		
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+	</style>
+</head>
+
+	<body>
+		<div id="container"></div>
+		<script src="../../build/three.js"></script>
+		<script src="../../js/Detector.js"></script>
+		<script src="../../js/libs/stats.min.js"></script>
+
+		<script src="../../js/controls/OrbitControls.js"></script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, stats;
+			var timer = 0;
+			var grid, group;
+			var themeColor = 0x0099ff;
+
+			init();
+			animate();
+
+			function init() {
+
+				stats = new Stats();
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.z = 400;
+
+				scene = new THREE.Scene();
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+
+
+
+
+
+
+				//
+
+				var MAX_POINTS = 500;
+
+				// geometry
+				var geometry = new THREE.BufferGeometry();
+
+				// attributes
+				var positions = new Float32Array( MAX_POINTS * 3 ); // 3 vertices per point
+				geometry.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+
+				// draw range
+				var drawCount = 12; // draw the first 2 points, only
+				geometry.setDrawRange( 0, drawCount );
+
+				// material
+				var material = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 2 } );
+
+				// line
+				var line = new THREE.Line( geometry, material );
+				scene.add( line );
+
+				// 
+				var positions = line.geometry.attributes.position.array;
+
+				var x, y, z, index;
+				x = y = z = index = 0;
+
+				for ( var i = 0, l = MAX_POINTS; i < l; i ++ ) {
+
+				    positions[ index ++ ] = x;
+				    positions[ index ++ ] = y;
+				    positions[ index ++ ] = z;
+
+				    x += 10 + Math.random()*5;
+				    y += 10 + Math.random()*5;
+				    z += 10 + Math.random()*5;
+
+				}
+
+
+
+
+				// 
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				container.appendChild( stats.dom );
+				container.appendChild( renderer.domElement );
+
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				// var timer = Date.now() * 0.001;
+				timer++;
+
+				// // scene.children[2].geometry.parameters.options.extrudePath.needsUpdate = true;
+				// scene.children[3].rotation.x = timer/100;
+				// scene.children[0].rotation.x = timer/100 - 2.2;
+
+				scene.children[0].geometry.attributes.position.needsUpdate = true;
+
+				var pos_arr = scene.children[0].geometry.attributes.position.array;
+
+
+				for( var i = 1; i<16; ++i ) {
+
+					pos_arr[ i*3 ] += Math.sin( (timer+i*16) * Math.PI /180 )*i/10;
+
+				}
+
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
