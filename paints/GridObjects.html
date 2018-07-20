@@ -260,7 +260,7 @@
 
 					// material.map = new THREE.Texture( canvasgroup[rand] );
 
-					var object = new THREE.Mesh( new THREE.SphereBufferGeometry(  60, 110, 120 ), MaterialGroup[rand] );
+					var object = new THREE.Mesh( new THREE.ConeBufferGeometry(  60, 140, 100 ), MaterialGroup[rand] );
 					object.rotation.y = Math.PI;
 					object.position.set( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
 					object.castShadow = true;
@@ -335,7 +335,7 @@
 
 				for( var i=0; i<group.children.length; ++i ) {
 
-					// group.children[i].position.y = Math.abs( Math.sin( (timer + i)/30 ) * 140 );
+					group.children[i].position.y = Math.abs( Math.sin( (timer + i)/20 ) * 140 );
 
 					group.children[i].rotation.x = Math.sin( (timer + i)/130 )*1;
 					group.children[i].rotation.y = Math.cos( (timer + i)/30 )*1;
