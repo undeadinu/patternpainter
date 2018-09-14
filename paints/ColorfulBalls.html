@@ -211,7 +211,7 @@
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color( '#' + colors[0] );
-				scene.fog = new THREE.Fog( '#' + colors[0], 600, 900 );
+				// scene.fog = new THREE.Fog( '#' + colors[0], 600, 900 );
 				//
 
 				var ambientLight = new THREE.AmbientLight( 0xcccccc, 0.4 );
@@ -281,28 +281,68 @@
 
 				} );
 
-				geometry = new THREE.SphereBufferGeometry( 100, 64, 64 );
+				geo_sphere = new THREE.SphereBufferGeometry( 100, 64, 64 );
+				geo_torus = new THREE.TorusBufferGeometry( 180, 33, 16, 100 );
 
 				object = new THREE.Mesh( geometry, shaderMaterial );
 				object.position.set( -200, 9, 0 );
 				// scene.add( object );
 
-				for( var i=0; i<10; ++i  ){
+				var radius;
 
-					var obj = new THREE.Mesh( geometry, material );
 
-					obj.position.set( Math.random()*width - width/2, 
-										Math.random()*height - height/2, 
-										Math.random()*200 - 100 );
+				// SPHERES
+				for( var i=1; i<20; ++i ) {
 
-					var scale = Math.random() * 2;
+					radius = i * i * 5;
 
-					obj.scale.set( scale, scale, scale );
+					var rotationFactor = Math.random();	
+					// rotationFactor = 1;
 
-					// obj.rotation.set( 0, 0, Math.random()*3 );
+					for( var j=0; j<20; ++j ) {
 
-					scene.add( obj );
+						var sphere = new THREE.Mesh( geo_sphere, material );
+
+						var angle = Math.PI * ( j/20 ) * 2 + rotationFactor;
+
+						sphere.position.set( Math.cos(angle)*radius + 400*(1/i*i), Math.sin(angle)*radius, 0 );
+
+						var scaleRandom = Math.random();
+						sphere.scale.set( i*i*scaleRandom/300, i*i*scaleRandom/300, i*i*scaleRandom/300 );
+
+						scene.add( sphere );
+
+					}
+
 				}
+
+				// TORUSES
+				for( var i=1; i<10; ++i ) {
+
+					radius = i * i * 25;
+
+					var rotationFactor = Math.random();	
+					// rotationFactor = 1;
+
+					for( var j=0; j<10; ++j ) {
+
+						var torus = new THREE.Mesh( geo_torus, material );
+
+						var angle = Math.PI * ( j/20 ) * 2 + rotationFactor;
+
+						torus.position.set( Math.cos(angle)*radius + 400*(1/i*i), Math.sin(angle)*radius, -20 );
+
+						var scaleRandom = Math.random();
+						torus.scale.set( i*i*scaleRandom/100, i*i*scaleRandom/100, i*i*scaleRandom/300 );
+
+						scene.add( torus );
+
+					}
+
+				}
+
+
+
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );

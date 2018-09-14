@@ -37,12 +37,15 @@
 
 		<script src="../js/shaders/CopyShader.js"></script>
 		<script src="../js/shaders/BokehShader.js"></script>
+		<script src="../js/shaders/FXAAShader.js"></script>
+		<script src="../js/shaders/SMAAShader.js"></script>
 
 		<script src="../js/postprocessing/EffectComposer.js"></script>
 		<script src="../js/postprocessing/RenderPass.js"></script>
 		<script src="../js/postprocessing/ShaderPass.js"></script>
 		<script src="../js/postprocessing/MaskPass.js"></script>
 		<script src="../js/postprocessing/BokehPass.js"></script>
+		<script src="../js/postprocessing/SMAAPass.js"></script>
 
 		<script src="../js/controls/OrbitControls.js"></script>
 		<script src="../js/Detector.js"></script>
@@ -203,11 +206,18 @@
 					height: height
 				} );
 
+				var effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+				effectFXAA.uniforms[ 'resolution' ].value.set( 1 / width, 1 / height );
+
+				var effectSMAA = new THREE.SMAAPass( window.innerWidth * renderer.getPixelRatio(), window.innerHeight * renderer.getPixelRatio() );
+
+				// which is the final pass
 				bokehPass.renderToScreen = true;
 
 				var composer = new THREE.EffectComposer( renderer );
-
 				composer.addPass( renderPass );
+				composer.addPass( effectSMAA );
+				// composer.addPass( effectFXAA );
 				composer.addPass( bokehPass );
 
 				postprocessing.composer = composer;

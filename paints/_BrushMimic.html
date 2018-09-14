@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - buffergeometry - lines drawcalls</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #cccccc;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000000;
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script src="../build/three.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../js/libs/dat.gui.min.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+
+		<script>
+
+			init();
+			animate();
+
+			function init() {
+
+				// RENDERER
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+				//
+
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.1, 4000 );
+				camera.position.z = 1000;
+
+				scene = new THREE.Scene();
+
+				scene.background = new THREE.Color( '#ffffff' );
+				scene.fog = new THREE.Fog( '#ffffff', 950, 1000 );
+
+
+				// Lights
+				// ------
+				var amblight = new THREE.AmbientLight( 0xffffff, 1.0 );
+				// scene.add( amblight );
+
+				var dirlight = new THREE.DirectionalLight( 0xff9900, 1.0 );
+				dirlight.position.set( 300, 200, 400 );
+				// scene.add( dirlight );
+
+
+
+
+
+				// Pipe Meshes
+				// -----------
+				// spline
+				var pipeSpline_01 = new THREE.CatmullRomCurve3( [
+					new THREE.Vector3( -w/1.7, -h/3, -200 ),
+					new THREE.Vector3( -w/4, h/4, 0 ),
+					new THREE.Vector3( w/4, -h/4, 0 ),
+					new THREE.Vector3( w/1.7, h/3, -200 ),
+				]);
+
+				// Material
+				var pipematerial = new THREE.MeshPhongMaterial({
+					color: 0x0000ff,
+				})
+
+				var pipematerial_blend = new THREE.MeshBasicMaterial({
+					color: 0xff0000,
+					// blending: THREE.AdditiveBlending,
+					transparent: true,
+					// side: THREE.BackSide,
+				});
+
+				// Geometry
+				var pipegeo = new THREE.TubeBufferGeometry( pipeSpline_01, 100, 72, 20 );
+
+				// Meshes
+				var pipe = new THREE.Mesh( pipegeo, pipematerial );
+				pipe.position.set( 40, 10, -140 );
+
+				var pipe_02 = new THREE.Mesh( pipegeo, pipematerial_blend );
+
+				// add to scene
+				// scene.add( pipe );
+				scene.add( pipe_02 );
+
+
+
+
+
+				// Moving Light ball
+				// -----------------
+				pos_array = pipeSpline_01.getPoints(40);
+
+				var spriteMap = new THREE.TextureLoader().load( "../textures/lensflare0_alpha.png" );
+				var spriteMaterial = new THREE.SpriteMaterial( { 
+					map: spriteMap, 
+					color: 0xff99ff, 
+					blending: THREE.AdditiveBlending,
+					transparent: true
+				} );
+
+				var sphere = new THREE.Sprite( spriteMaterial );
+				sphere.position.set( 0 , 0 , 100  );
+				sphere.scale.set( 100, 100, 1  );
+				// scene.add(sphere);
+
+
+
+
+
+
+
+
+
+				// Additional 
+				// ----------
+				stats = new Stats();
+				container.appendChild( stats.dom );
+				var controls = new THREE.OrbitControls( camera, container );
+				window.addEventListener( 'resize', onWindowResize, false );
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				stats.update();
+				render();
+
+			}
+
+			function render() {
+
+				var time = Date.now() * 0.001;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

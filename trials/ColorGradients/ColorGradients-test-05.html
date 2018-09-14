@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Color Gradients</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+			}
+
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+
+			#canvas2d_wrapper {
+				position: absolute;
+				top: 0; left: 0;
+				width: 400px;
+				height: 200px;
+			}
+			#drawingcanvas {
+				/*display: none;*/
+				width: 100%;
+			}
+
+			#addDraw {
+				width: 200px; 
+				height: 20px;
+				background-color: #fff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+		<div id="canvas2d_wrapper">
+			<canvas id="drawingcanvas" width="1024" height="512" ></canvas>
+			<!-- <button id="addDraw" onclick="addCanvasDraw()"></button> -->
+		</div>
+
+		<script src="../../build/three.js"></script>
+
+		<script src="../../js/Colors.js"></script>
+		<script src="../../js/Detector.js"></script>
+		<script src="../../js/libs/stats.min.js"></script>
+		<script src="../../js/controls/OrbitControls.js"></script>
+
+		<script src="../../js/CurveExtras.js"></script>
+		<script src="../../js/ParametricGeometries.js"></script>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			precision mediump float;
+			precision mediump int;
+
+			uniform mat4 modelViewMatrix; // optional
+			uniform mat4 projectionMatrix; // optional
+
+			attribute vec3 position;
+			attribute vec3 normal;
+			attribute vec4 color;
+
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			varying vec4 vColor;
+
+			void main()	{
+
+				vPosition = position;
+				vColor = color;
+				vNormal = normal;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			precision mediump float;
+			precision mediump int;
+
+			uniform float time01;
+			uniform float time02;
+			uniform float time03;
+
+			uniform vec4 colorFix;
+
+			varying vec3 vPosition;
+			varying vec3 vNormal;
+			varying vec4 vColor;
+
+			void main()	{
+
+				vec4 color = vColor;
+
+				color.r = colorFix.r;
+				color.g = colorFix.g;
+				color.b = colorFix.b;
+				color.a = 1.0;
+
+				gl_FragColor = color;
+
+			}
+		</script>
+
+		<script type="text/javascript">
+
+			// 获取一个canvas的 drawing context
+			var drawingCanvas = document.getElementById( 'drawingcanvas' );
+			var ctx = drawingCanvas.getContext( '2d' );
+
+			// 
+			// var colors_fantasy = Color_fantasy[ Math.floor( Math.random() * Color_fantasy.length ) ];
+			var colors_fantasy_0 = Color_fantasy[ 0 ];
+			var colors_fantasy_1 = Color_fantasy[ 1 ];
+
+			var grd = ctx.createLinearGradient( 0, 0, 0, 512 );
+			grd.addColorStop( 0.0, '#' + colors_fantasy_0[0] + 'ff' );
+			grd.addColorStop( 0.3, '#' + colors_fantasy_0[1] + 'ff' );
+			grd.addColorStop( 0.7, '#' + colors_fantasy_0[2] + 'ff' );
+			grd.addColorStop( 1.0, '#' + colors_fantasy_0[3] + 'ff' );
+			ctx.fillStyle = grd;
+			ctx.fillRect( 0, 0, 1024, 512 );
+
+			// ctx.fillStyle = '#' + colors[ Math.floor( Math.random()*6 ) ];
+			// ctx.fillRect( 0, 0, 1024, 512 );
+
+			var paintpoints = [];
+
+			for( var i=0; i<2; ++i ) {
+
+				for( var j=0; j<2; ++j ) {
+
+					var px = Math.random()*0.5 + 0.5*i;
+					var py = Math.random()*0.5 + 0.5*j;
+					var x = px*1024;
+					var y = py*512;
+					var radius_inner = Math.random() * 50 + 50;
+					var radius_outer = Math.random() * 300 + 200;
+
+					var grd = ctx.createRadialGradient( x, y, radius_inner, x, y, radius_outer);
+
+					var tempColors = colors_fantasy_1.slice(0);
+
+					var c1 = pick(tempColors);
+					var c2 = pick(tempColors);
+					var c3 = pick(tempColors);
+
+					grd.addColorStop( 0.0, '#' + c1 );
+					grd.addColorStop( 0.2, '#' + c2 );
+					grd.addColorStop( 1.0, '#' + c3 + '00' );
+
+					ctx.fillStyle = grd;
+					ctx.fillRect( 0, 0, 1024, 512 );
+
+					paintpoints.push({
+						px : px,
+						py : py
+					})
+
+				}
+
+			}
+
+
+			function pick( array ) {
+
+				var rand = Math.floor( Math.random()*array.length );
+
+				var result = array[rand];
+
+				array.splice( rand, 1 );
+
+				return result;
+
+			}
+
+			function addCanvasDraw() {
+
+				var x = Math.random() * 1024;
+				var y = Math.random() * 512;
+				var radius_inner = Math.random() * 50 + 50;
+				var radius_outer = Math.random() * 100 + 400;
+
+				var grd = ctx.createRadialGradient( x, y, radius_inner, x, y, radius_outer);
+
+				var r1 = Math.floor( Math.random()*4 );
+				var r2 = Math.floor( Math.random()*4 );
+				var r3 = Math.floor( Math.random()*4 );
+
+				grd.addColorStop( 0.0, '#' + colors[r1] );
+				// grd.addColorStop( 0.3, '#' + colors[r2] );
+				// grd.addColorStop( 0.6, '#' + colors[r3] );
+				grd.addColorStop( 1.0, '#' + colors[r3] + '00' );
+
+				ctx.fillStyle = grd;
+				ctx.fillRect( 0, 0, 1024, 512 );
+
+			}
+
+		</script>
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, stats;
+			var geometry, material;
+			var influences = [];
+
+			var width = window.innerWidth;
+			var height = window.innerHeight;
+			// var width = 1000;
+			// var height = 500;
+
+			var anchors = [ 
+				new THREE.Vector3(0,0,0), 
+				new THREE.Vector3(0,0,0), 
+				new THREE.Vector3(0,0,0), 
+				new THREE.Vector3(0,0,0) 
+			];
+
+			// init();
+
+			var img = new Image();
+			img.src = '../../textures/color01.jpg';
+			img.onload = function() {
+				ctx.drawImage(img,0,0);
+				init();
+			}
+
+			animate();
+
+ 
+			function Influence ( x, y, z, radius ) {
+
+				this.anchor = new THREE.Vector3( x, y, z );
+				this.effectradius = radius;
+				this.map = new Map();
+				this.geometry = null;
+
+				this.surround = function ( geometry ) {
+
+					this.geometry = geometry;
+
+					var distance;
+
+					for( var i=0; i<geometry.vertices.length ; i++ ) {
+
+						if( i%100==0 || i%100==99 || i<100 || ( i>5900 && i<6000 ) ) {
+							continue;
+						}
+
+						distance = geometry.vertices[i].distanceTo( this.anchor );
+
+						if( distance < this.effectradius ) {
+
+							var factor = distance/this.effectradius;
+
+							var weight = (( 1 / ( Math.sqrt( 2 * 3.14 ) * 0.25 ) ) *Math.exp ( - (factor) * (factor) / (2* 0.25 * 0.25 ) )) / 1.6;
+
+							this.map.set( i, weight );
+
+						}
+					}
+				}
+
+				this.moveTo = function ( target_x, target_y, target_z ) {
+
+					if( this.anchor.x === target_x && this.anchor.y === target_y && this.anchor.z === target_z ) {
+						return;
+					}
+
+					var dx = target_x - this.anchor.x;
+					var dy = target_y - this.anchor.y;
+					var dz = target_z - this.anchor.z;
+
+					this.map.forEach( function( value, index, mapObj ) {
+
+						this.geometry.vertices[index].x += dx*value;
+						this.geometry.vertices[index].y += dy*value;
+						this.geometry.vertices[index].z += dz*value;
+
+					});
+
+					geometry.computeVertexNormals();
+
+					this.anchor.set( target_x, target_y, target_z );
+
+				}
+			}
+
+			function init() {
+
+				var container = document.getElementById( 'container' );
+
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 4000 );
+				camera.position.z = 800;
+
+				scene = new THREE.Scene();
+				// scene.background = new THREE.Color( '#' + colors[2] );
+				// scene.background = new THREE.Color( 0x000000 );
+				// scene.fog = new THREE.Fog( '#' + colors[2], 600, 800 );
+
+				function testfunc ( u, v ) {
+
+					var f_u = (( 1 / 2 * 3 ) * Math.exp ( - (u*2-1) * (u*2-1) / 0.2 )); // Gauss Algorithm
+
+					if( v > 0.5 ) {
+						z = f_u * ( -Math.sin( v*Math.PI/2 )*100+100 );
+					}else{
+						z = f_u * ( -Math.cos( v*Math.PI/2 )*100+100 );
+						// z = 0;
+					}
+
+
+					return new THREE.Vector3( u*width - width/2, v*height - height/2, z );	
+
+				}
+
+				geometry = new THREE.ParametricGeometry( testfunc, 99, 59 );
+
+
+				var testgeo = new THREE.BoxGeometry( 20, 20, 20 );
+				var testmat = new THREE.MeshBasicMaterial({color:0xff0000});
+
+				// INFLUENCE
+				// init influences
+				for( var i=0; i<4; ++i ) {
+
+					var ix = paintpoints[i].px * width - width/2;
+					var iy = -paintpoints[i].py * height + height/2;
+					var iz = Math.random()*40;
+
+					// var test = new THREE.Mesh( testgeo, testmat );
+					// test.position.set( ix, iy, iz );
+					// scene.add(test);
+
+					anchors[i].set( ix, iy, iz );
+
+					var influence = new Influence( ix, iy, iz, Math.random()*300+400 );
+					influence.surround( geometry );
+
+					influences.push( influence );
+
+				}
+				// make influences effect
+				for( var i=0; i<influences.length; ++i ) {
+
+					influences[i].moveTo( 
+						anchors[i].x + ( Math.random()*300+300 ) * Math.pow( (-1), Math.floor( Math.random()*10 ) ), 
+						anchors[i].y + ( Math.random()*300+100 ) * Math.pow( (-1), Math.floor( Math.random()*10 ) ), 
+						anchors[i].z + 400  
+					);
+
+				}
+
+				// var material = new THREE.MeshNormalMaterial( { 
+				// 	side : THREE.DoubleSide,
+				// 	wireframe : true
+				// } );
+
+				var map_uv = new THREE.TextureLoader().load( '../../textures/UV_Grid_Sm.jpg' );
+				map_uv.wrapS = map_uv.wrapT = THREE.RepeatWrapping;
+				map_uv.anisotropy = 16;
+
+				material = new THREE.MeshBasicMaterial( { 
+					map : new THREE.Texture( drawingcanvas ),
+					side : THREE.DoubleSide,
+					transparent: true,
+					// opacity: 0.2,
+					// blending: THREE['AdditiveBlending'],
+					// wireframe : true
+					// color: 0xff0000
+				} );
+
+				normalMaterial = new THREE.MeshNormalMaterial();
+
+				// var material = new THREE.RawShaderMaterial( {
+				// 	uniforms: {
+				// 		time01 : { value: 1.0 },
+				// 		time02: { value: 1.0 },
+				// 		time03: { value: 1.0 },
+				// 		colorFix: { value: [ 1.6, 0.0, 0.9, 0.0 ] }
+				// 	},
+				// 	vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				// 	fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+				// 	side: THREE.DoubleSide,
+				// 	transparent: true
+
+				// } );
+
+
+				object = new THREE.Mesh( geometry, material );
+				scene.add( object );
+
+				object02 = new THREE.Mesh( geometry, normalMaterial );
+				object02.position.set( 0, 0, -70 );
+				scene.add( object02 );
+
+				// scene.add( new THREE.AxesHelper( 120 ) );
+
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				stats = new Stats();
+				// container.appendChild( stats.dom );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+				// controls.minDistance = 20;
+				// controls.maxDistance = 50;
+				// controls.maxPolarAngle = Math.PI / 2;
+
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var timer = Date.now() * 0.001;
+
+				// camera.position.x = Math.cos( timer ) * 800;
+				// camera.position.z = Math.sin( timer ) * 800;
+
+				// camera.lookAt( scene.position );
+
+				// scene.traverse( function( object ) {
+
+				// 	if ( object.isMesh === true ) {
+
+				// 		object.rotation.x = timer * 5;
+				// 		object.rotation.y = timer * 2.5;
+
+				// 	}
+
+				// } );
+
+				geometry.normalsNeedUpdate = true;
+				geometry.verticesNeedUpdate = true;
+
+				material.map.needsUpdate = true;
+
+
+				for( var i=0; i<influences.length; ++i ) {
+
+					influences[i].moveTo( anchors[i].x + Math.cos( timer + i )*400, 
+										anchors[i].y + Math.sin( timer+0.1 )*100, 
+										anchors[i].z + 400  );
+
+				}
+
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>

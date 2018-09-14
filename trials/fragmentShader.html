@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<script src="../build/three.js"></script>
+	<script src="../js/controls/OrbitControls.js"></script>	
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			color: #eee;
+			font-family:Monospace;
+			font-size:13px;
+			text-align:center;
+
+			background-color: #000;
+			margin: 0px;
+			padding: 0px;
+			overflow: hidden;
+		}
+
+		#info {
+			position: absolute;
+			top: 0px; width: 100%;
+			padding: 5px;
+		}
+
+		a {
+			color: #0080ff;
+		}
+
+		#canvas2d_wrapper {
+			position: absolute;
+			top: 0; left: 0;
+			width: 400px;
+			height: 200px;
+		}
+		#drawingcanvas {
+			/*display: none;*/
+			width: 100%;
+		}
+
+		#addDraw {
+			width: 200px; 
+			height: 20px;
+			background-color: #fff;
+		}
+	</style>
+</head>
+<body>
+	<div id="container"></div>
+
+	<script id="vertexShader" type="x-shader/x-vertex">
+
+
+		void main() {
+
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}
+
+	</script>
+
+	<script id="fragment_shader_screen" type="x-shader/x-fragment">
+
+		precision highp float;
+
+		#define PI 3.1415926
+
+		uniform vec2 u_resolution;
+		uniform float u_time;
+
+		float plot( vec2 st, float d ) {
+			return smoothstep( d - 0.01, d, st.y ) - smoothstep( d, d + 0.01, st.y );
+		}
+
+		float circle( in vec2 _st, in float _radius ){
+
+		    vec2 dist = _st-vec2(0.5);
+
+			return 1.0 - smoothstep(_radius-(_radius*0.01), _radius+(_radius*0.01), dot(dist,dist)*4.0);
+
+		} 
+
+		float random( vec2 st ) {
+
+			return fract( sin( dot( st.xy, vec2( 12.9898, 78.233 ) ) ) * ( 43758.5453123 + u_time ) );
+
+		}
+
+		void main() {
+
+			
+			vec2 st = gl_FragCoord.xy/u_resolution.xy;
+
+    		float rnd = random( st ); 
+
+
+
+			gl_FragColor = vec4( vec3(rnd), 1.0 );
+
+		}
+
+	</script>
+
+
+	<script type="text/javascript">
+
+		var time = 0;
+
+		init();
+		animate();
+
+		function init() {
+
+			// Renderer
+			renderer = new THREE.WebGLRenderer();
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.autoClear = false;
+
+			container.appendChild( renderer.domElement );
+
+			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
+			camera.position.z = 400;
+
+			// Scene
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color(0x0099ff);
+
+
+
+			
+			quad_geo = new THREE.PlaneBufferGeometry( window.innerWidth, window.innerHeight );
+			quad_mat = new THREE.ShaderMaterial( {
+
+				uniforms: { 
+					u_time: { value: time },
+					u_resolution: { value: new THREE.Vector2( window.innerWidth, window.innerHeight ) }, 
+				},
+				vertexShader: document.getElementById( 'vertexShader' ).textContent,
+				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+
+				depthWrite: false
+
+			} );
+			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
+
+
+
+
+
+			// Controls
+			var controls = new THREE.OrbitControls( camera, renderer.domElement );
+		}
+
+
+		function animate() {
+
+			requestAnimationFrame( animate );
+
+			render();
+
+		}
+
+		function render() {
+
+			time++;
+
+			renderer.render( scene, camera );
+
+		}
+
+
+	</script>
+
+</body>
+</html>
