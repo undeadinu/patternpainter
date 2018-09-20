@@ -3,8 +3,8 @@
 <head>
 	<title></title>
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-	<script src="../build/three.js"></script>
-	<script src="../js/controls/OrbitControls.js"></script>	
+	<script src="../../build/three.js"></script>
+	<script src="../../js/controls/OrbitControls.js"></script>	
 	<style>
 		* {
 			margin: 0;
@@ -56,7 +56,6 @@
 
 	<script id="vertexShader" type="x-shader/x-vertex">
 
-
 		void main() {
 
 			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
@@ -65,50 +64,48 @@
 
 	</script>
 
-	<script id="fragment_shader_screen" type="x-shader/x-fragment">
-
-		precision highp float;
-
-		#define PI 3.1415926
-
-		uniform vec2 u_resolution;
-		uniform float u_time;
-
-		float plot( vec2 st, float d ) {
-			return smoothstep( d - 0.01, d, st.y ) - smoothstep( d, d + 0.01, st.y );
-		}
-
-		float circle( in vec2 _st, in float _radius ){
-
-		    vec2 dist = _st-vec2(0.5);
-
-			return 1.0 - smoothstep(_radius-(_radius*0.01), _radius+(_radius*0.01), dot(dist,dist)*4.0);
-
-		} 
-
-		float random( vec2 st ) {
-
-			return fract( sin( dot( st.xy, vec2( 12.9898, 78.233 ) ) ) * ( 43758.5453123 + u_time ) );
-
-		}
-
+	<script id="init_fragmentShader" type="x-shader/x-fragment">
+		
 		void main() {
 
-			
-			vec2 st = gl_FragCoord.xy/u_resolution.xy;
-
-    		float rnd = random( st ); 
-
-
-
-			gl_FragColor = vec4( vec3(rnd), 1.0 );
+			gl_FragColor = vec4( 0.0 );
 
 		}
 
 	</script>
 
-
 	<script type="text/javascript">
+
+		var quad_mat;
+
+		function loadShaderFromFile( filename, onLoadShader ) {
+
+		    var request = new XMLHttpRequest();
+
+		    request.onreadystatechange = function() {
+
+		    	if( request.readyState === 4 && request.status === 200 ) {
+
+		            onLoadShader( request.responseText );
+
+		        }
+
+		    }
+		        
+		    request.open( "GET", filename, true );
+		    request.send();
+
+		}
+
+		loadShaderFromFile( './shaping_02.glsl', function(text) {
+
+			quad_mat.fragmentShader = text;
+			quad_mat.needsUpdate = true;
+
+		})
+
+
+		var sw = 600, sh = 600;
 
 		var time = 0;
 
@@ -125,7 +122,9 @@
 
 			container.appendChild( renderer.domElement );
 
-			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, -10000, 10000 );
+			camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, 
+													window.innerHeight / 2, window.innerHeight / - 2, 
+													-10000, 10000 );
 			camera.position.z = 400;
 
 			// Scene
@@ -133,21 +132,32 @@
 			scene.background = new THREE.Color(0x0099ff);
 
 
-
 			
+
+
+			// Quad : drawing fragment on it
+			// ----------------------------------------------
+			// ----------------------------------------------
+
+			// screen: 800, 500
+
+			var shaderSize = 400;
+
 			quad_geo = new THREE.PlaneBufferGeometry( window.innerWidth, window.innerHeight );
 			quad_mat = new THREE.ShaderMaterial( {
 
 				uniforms: { 
 					u_time: { value: time },
-					u_resolution: { value: new THREE.Vector2( window.innerWidth, window.innerHeight ) }, 
+					u_screencoord: { value: new THREE.Vector2( window.innerWidth, window.innerHeight ) },
+					u_resolution: { value: new THREE.Vector2( shaderSize, shaderSize ) }, 
 				},
 				vertexShader: document.getElementById( 'vertexShader' ).textContent,
-				fragmentShader: document.getElementById( 'fragment_shader_screen' ).textContent,
+				fragmentShader: document.getElementById( 'init_fragmentShader' ).textContent,
 
 				depthWrite: false
 
 			} );
+
 			scene.add( new THREE.Mesh( quad_geo, quad_mat ) );
 
 
@@ -159,6 +169,7 @@
 		}
 
 
+
 		function animate() {
 
 			requestAnimationFrame( animate );
@@ -167,9 +178,13 @@
 
 		}
 
+
+
 		function render() {
 
 			time++;
+
+			quad_mat.uniforms.u_time.value = time/20;
 
 			renderer.render( scene, camera );
 
