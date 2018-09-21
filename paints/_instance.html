@@ -28,7 +28,6 @@
 
 			#container {
 				position: relative;
-				top: 150px;
 			}
 
 			#canvas2d_wrapper {
@@ -55,6 +54,7 @@
 
 		<script src="../build/three.js"></script>
 		<script src="../js/controls/OrbitControls.js"></script>
+		<script src="../js/loaders/ColladaLoader.js"></script>
 		<script src="../js/libs/dat.gui.min.js"></script>
 		<script src="../js/libs/stats.min.js"></script>
 
@@ -71,10 +71,10 @@
 			attribute vec3 offset;
 			attribute vec2 uv;
 			attribute vec4 orientation;
-			attribute float variation;
+			// attribute float variation;
 
 			varying vec2 vUv;
-			varying float vVariation;
+			// varying float vVariation;
 
 			void main() {
 
@@ -84,7 +84,7 @@
 
 				vUv = uv; 
 
-				vVariation = variation;
+				// vVariation = variation;
 
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( offset + position, 1.0 ); 
 
@@ -95,15 +95,18 @@
 			precision highp float;
 
 			uniform sampler2D map;
+			uniform float u_time;
 
 			varying vec2 vUv;
-			varying float vVariation;
+			// varying float vVariation;
 
 			void main() {
 
 				vec2 uv = vUv;
 
-				uv.x += vVariation;
+				// uv.x += vVariation;
+
+				// uv.y += sin( u_time + uv.x*1.0 );
 
 				gl_FragColor = texture2D( map, uv );
 
@@ -139,8 +142,8 @@
 
 			// Color scheme
 
-			// var Colors = [ '2B4FF0', '452DEF', '552FFF', '3AA4FA' ];
-			var Colors = [ '4F91F3','4F7CF3','3E6FF2','3867E7' ];
+			var Colors = [ '2B4FF0', '452DEF', '552FFF', '3AA4FA' ];
+			// var Colors = [ '4F91F3','4F7CF3','3E6FF2','3867E7' ];
 
 
 			function randomsort(a, b) {
@@ -203,6 +206,12 @@
 
 			var colors = parsColors(Colors);
 
+			var instanced_geo = new THREE.InstancedBufferGeometry();
+			var test_geo = new THREE.BufferGeometry();
+
+			var dae;
+
+
 			init();
 			animate();
 
@@ -210,13 +219,14 @@
 
 				// RENDERER
 
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( 1080, 300 );
+				renderer.setSize( w, h );
 				container.appendChild( renderer.domElement );
-
-				var banner_w = 1080;
-				var banner_h = 300;
 
 
 
@@ -272,9 +282,9 @@
 				// ------
 
 				// camera
-				camera = new THREE.OrthographicCamera( banner_w / - 2, banner_w / 2, banner_h / 2, banner_h / - 2, 0.1, 8000 );
-				camera.position.x = 400;
-				camera.position.y = 400;
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 0.1, 8000 );
+				camera.position.x = 2000;
+				camera.position.y = 1200;
 				camera.position.z = 1600;
 
 				// scene
@@ -294,7 +304,7 @@
 				var spriteMaterial = new THREE.SpriteMaterial( { map: rtTexture.texture } );
 				shader_sprite = new THREE.Sprite( spriteMaterial );
 				shader_sprite.scale.set( 200, 200, 1 );
-				shader_sprite.position.set( banner_w/2 - 100, banner_h/2 - 100, 340 );
+				shader_sprite.position.set( w/2 - 100, h/2 - 100, 340 );
 				// scene.add( shader_sprite );
 
 
@@ -307,47 +317,18 @@
 				// -----------
 				// -----------
 
-				var shader_mat = new THREE.MeshBasicMaterial( { map: rtTexture.texture } );
-
-				var mat_test = new THREE.MeshBasicMaterial( { color: 0xffffff } );
-
-				basic_geo = new THREE.BoxBufferGeometry( 40, 230, 40 );
-
-				instanced_geo = new THREE.InstancedBufferGeometry();
-				instanced_geo.index = basic_geo.index;
-				instanced_geo.attributes.position = basic_geo.attributes.position;
-				instanced_geo.attributes.uv = basic_geo.attributes.uv;
-
-				var offsets 		= [];
-				var orientations 	= [];
-				var variations 		= [];
-
-				var grid = new Grid( 8, 1, 8, 200, 200, 300 ); //
-
-				for( var i=0; i<grid.totalNum; ++i ) {
-
-					offsets.push( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
-
-					orientations.push( 0, 0, 0, 0 );
-
-					variations.push( Math.random() );
-
-				}
+				
 
 
-				offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
-				orientationAttribute = new THREE.InstancedBufferAttribute( new Float32Array( orientations ), 4 ).setDynamic( true );
-				variationsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( variations ), 1 );
 
+				var lambert_shader_mat = new THREE.MeshLambertMaterial( { map: rtTexture.texture } );
 
-				instanced_geo.addAttribute( 'offset', offsetsAttribute );
-				// instanced_geo.addAttribute( 'orientation', orientationAttribute );
-				instanced_geo.addAttribute( 'variation', variationsAttribute );
+				var test_mat = new THREE.MeshBasicMaterial( { color: 0xffffff } );
 
-
-				var mat = new THREE.RawShaderMaterial( {
+				rawshaderMat = new THREE.RawShaderMaterial( {
 
 					uniforms: { 
+						u_time: { value: 0.0 },
 						map: { value: rtTexture.texture },
 					},
 
@@ -356,20 +337,65 @@
 
 				} );
 
-				gridboxes = new THREE.Mesh( instanced_geo, mat );
+				var loader = new THREE.ColladaLoader();
 
-				scene.add( gridboxes );
+				loader.load( '../models/money.dae', function ( collada ) {
 
-				// var sphere_geo = new THREE.SphereBufferGeometry( 80, 32, 32 );
-				// var sphere = new THREE.Mesh( sphere_geo, shader_mat );
-				// scene.add( sphere );
+					dae = collada.scene;
+
+					dae.traverse( function ( child ) {
+
+						if ( child instanceof THREE.Mesh ) {
+
+							child.material = test_mat;
+							child.scale.set( 120, 120, 120 );
+							// scene.add( child );
+
+							instanced_geo.index 				= child.geometry.index;
+							instanced_geo.attributes.position 	= child.geometry.attributes.position;
+							instanced_geo.attributes.uv 		= child.geometry.attributes.uv;
+
+							var offsets 		= [];
+
+							var grid = new Grid( 6, 1, 6, 4, 4, 4 ); //
+
+							for( var i=0; i<grid.totalNum; ++i ) {
+
+								offsets.push( grid.matrix[i].x, grid.matrix[i].y, grid.matrix[i].z );
+
+							}
+
+							offsetsAttribute = new THREE.InstancedBufferAttribute( new Float32Array( offsets ), 3 );
+
+							instanced_geo.addAttribute( 'offset', offsetsAttribute );
+
+
+							var mesh = new THREE.Mesh( instanced_geo, rawshaderMat );
+							mesh.scale.set( 120, 120, 120 );
+							scene.add( mesh );
+
+						}
+
+					} );
+
+				} );
+
+				
+
+				// obj = new THREE.Mesh( test_geo, rawshaderMat );
+				// obj.scale.set( 20.0, 20.0, 20.0 );
+				// scene.add( obj );
+
+				
 
 
 
 
 
 
-				loadShaderFromFile( './shaping_01.glsl', function(text) {
+				// GLSL
+
+				loadShaderFromFile( './scripts/shaping_01.glsl', function(text) {
 
 					quad_mat.fragmentShader = text;
 					quad_mat.needsUpdate = true;
@@ -384,6 +410,8 @@
 				container.appendChild( stats.dom );
 				var controls = new THREE.OrbitControls( camera, container );
 				window.addEventListener( 'resize', onWindowResize, false );
+
+
 			}
 
 			function onWindowResize() {
@@ -411,6 +439,7 @@
 				// var u_time = Date.now() * 0.001;
 
 				quad_mat.uniforms.u_time.value = u_time++/220;
+				rawshaderMat.uniforms.u_time.value = u_time++/220;
 
 				renderer.clear();
 
