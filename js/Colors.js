@@ -1,6 +1,6 @@
 var Color_fantasy = [
   [ "9B50ED", "69D5FF", "FFBD6E", "FF77BC", "43FFB3", "5E71FF" ], 
-  [ "9B50ED", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ], 
+  [ "8E00FF", "FF0087", "FFBD6E", "FF3333", "FF7939", "FF00E1" ], 
 ];
 
 var Color_scifi = [

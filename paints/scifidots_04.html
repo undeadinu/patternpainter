@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>ScifiDots #04</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				color: #eee;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+
+				background-color: #000;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				padding: 5px;
+			}
+
+			a {
+				color: #0080ff;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script src="../build/three.js"></script>
+
+		<script src="../js/Detector.js"></script>
+		<script src="../js/libs/stats.min.js"></script>
+		<script src="../js/libs/dat.gui.min.js"></script>
+		<script src="../js/controls/OrbitControls.js"></script>
+
+		<script src="../js/CurveExtras.js"></script>
+		<script src="../js/ParametricGeometries.js"></script>
+
+
+		<!-- post processing EFX -->
+
+		<script src="../js/postprocessing/EffectComposer.js"></script>
+		<script src="../js/postprocessing/RenderPass.js"></script>
+		<script src="../js/postprocessing/ShaderPass.js"></script>
+
+		<script src="../js/shaders/CopyShader.js"></script>
+		<script src="../js/shaders/ConvolutionShader.js"></script>
+		<script src="../js/shaders/LuminosityHighPassShader.js"></script>
+
+		<script src="../js/postprocessing/UnrealBloomPass.js"></script>
+
+
+		<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, composer, stats;
+			var count = 0;
+
+			var params = {
+				projection: 'normal',
+				background: false,
+				exposure: 0.9,
+				bloomThreshold: 0.43,
+				bloomStrength: 1.7,
+				bloomRadius: 0.67
+			};
+
+			init();
+			animate();
+
+			function init() {
+
+
+				var w = window.innerWidth;
+				var h = window.innerHeight;
+
+
+				// Camera and Scene
+
+				camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 4000 );
+				camera.position.z = 800;
+
+				scene = new THREE.Scene();
+
+				var themeColor = 0x00050a;
+				scene.background = new THREE.Color( themeColor );
+				scene.fog = new THREE.Fog( themeColor, 900, 1200 );
+
+
+
+				// Dots / Lines / Meshes -----------------------------------------------------------------------------------
+
+				var mapB = new THREE.TextureLoader().load( "../textures/disc.png" );
+
+				Obj = {
+
+					shootLineNum : 48,
+
+					sprite_mat : new THREE.SpriteMaterial({ color: 0x0099ff, map: mapB }),
+
+					points_innerCircle : new THREE.EllipseCurve( 300, 0, 20, 20, 0, 2 * Math.PI, false, 0 ).getPoints( 12 ),
+					
+					points_outerCircle : new THREE.EllipseCurve( 300, 0, 1200, 1200, 0, 2 * Math.PI, false, 0 ).getPoints( 12 ),
+
+
+					// shootcurve : new THREE.CatmullRomCurve3( [  ] ),
+
+					make: function() {
+
+						for( var i=0; i<12; ++i ) {
+
+							var pi = this.points_innerCircle[i];
+							var po = this.points_outerCircle[i];
+
+							var vi = new THREE.Vector3( pi.x, pi.y, -300 );
+							var vo = new THREE.Vector3( po.x, po.y, 0 );
+							var v1 = new THREE.Vector3().lerpVectors( vi, vo, 0.33 ).add( new THREE.Vector3( 10, 40, -400 ) );
+							var v2 = new THREE.Vector3().lerpVectors( vi, vo, 0.67 ).add( new THREE.Vector3( 0, -40, 0 ) );
+
+
+
+							// // lines
+
+							var curve = new THREE.CatmullRomCurve3( [vi, v1, v2, vo] );
+							var curvepos = curve.getPoints( 60 );
+
+							// var linegeo = new THREE.BufferGeometry().setFromPoints( curvepos );
+
+							// var line_01 = new THREE.Line( linegeo, lineMaterial );
+							// var line_02 = new THREE.Line( linegeo, lineMaterial );
+							// line_02.position.add( new THREE.Vector3(1,0,1) );
+
+							for( var j=0; j<curvepos.length; ++j ) {
+
+								var sprite = new THREE.Sprite( this.sprite_mat );
+								sprite.scale.set( 10,10,10 );
+								sprite.position.copy( curvepos[j] );
+								scene.add( sprite );
+
+							}
+
+							// scene.add(line_01);
+							// scene.add(line_02);
+
+						}
+
+
+					}
+
+
+				}
+
+
+				Obj.make();
+
+
+
+
+
+
+
+
+
+
+
+
+
+				// Renderer -----------------------------------------------------------------------------------
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+
+
+
+
+				// Post-processing EFX -----------------------------------------------------------------------------------
+
+				// composer = new THREE.EffectComposer( renderer );
+				// composer.addPass( new THREE.RenderPass( scene, camera ) );
+
+				// var effect_bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.7, 0.67, 0.43 ); 
+				// effect_bloomPass.renderToScreen = true;
+
+				// composer.addPass( effect_bloomPass );
+
+
+
+
+
+				// Stats / Gui / Controls -----------------------------------------------------------------------------------
+
+				stats = new Stats();
+				controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+
+
+
+				// Dom Manipulation -----------------------------------------------------------------------------------
+
+				var container = document.getElementById( 'container' );
+				container.appendChild( stats.dom );
+				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				renderer.render( scene, camera );
+
+				// composer.render();
+
+			}
+
+		</script>
+
+	</body>
+</html>
