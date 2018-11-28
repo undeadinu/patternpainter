@@ -84,7 +84,15 @@ var paints = {
 	},
 
 
+	// explosion
 
+	'explosion_00' : {
+
+		name : 'Explosion #00',
+		url : 'Explosion_00.html',
+		picurl : 'images/explosion-00.png'
+
+	},
 
 
 }

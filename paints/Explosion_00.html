@@ -148,17 +148,6 @@
 
 			// Decrating Meshes
 			var textureLoader = new THREE.TextureLoader();
-			// 
-			var planeGeo = new THREE.PlaneBufferGeometry( 100, 100, 1, 1 );
-			var planeMat = new THREE.MeshBasicMaterial({
-				map: textureLoader.load('../textures/lensflare0_alpha.png'),
-				color: 0xffccff,
-				transparent: true,
-				blending: THREE.AdditiveBlending,
-				// opacity: 
-			});
-			// scene.add( new THREE.Mesh( planeGeo, planeMat ) );
-
 
 			// Spheres -----------------------------------------------
 			light = new THREE.HemisphereLight( globalColors[0].getHex(), globalColors[1].getHex(), 2.0 );
@@ -166,10 +155,13 @@
 			scene.add( light );
 
 			var sphereGeo = new THREE.SphereBufferGeometry( 20, 32, 32 );
-			for( var i=0; i<10; ++i ) {
+			for( var i=0; i<30; ++i ) {
 
 				var sphereMat = new THREE.MeshPhongMaterial({
-					color: globalColors[i%6].getHex()
+					color: globalColors[i%6].getHex(),
+					blending: THREE.AdditiveBlending,
+					transparent: true,
+					opacity: 0.7
 				});
 				var sphere = new THREE.Mesh( sphereGeo, sphereMat );
 
