@@ -68,7 +68,9 @@
 		
 		void main() {
 
-			gl_FragColor = vec4( 0.0 );
+			vec4 color = vec4( 0.5, 1.0, 1.0, 1.0);
+
+			gl_FragColor = color;
 
 		}
 
@@ -97,12 +99,12 @@
 
 		}
 
-		loadShaderFromFile( './random_01.glsl', function(text) {
+		// loadShaderFromFile( './shapingFunction_03.glsl', function(text) {
 
-			quad_mat.fragmentShader = text;
-			quad_mat.needsUpdate = true;
+		// 	quad_mat.fragmentShader = text;
+		// 	quad_mat.needsUpdate = true;
 
-		})
+		// })
 
 
 		var sw = 600, sh = 600;
@@ -129,7 +131,7 @@
 
 			// Scene
 			scene = new THREE.Scene();
-			scene.background = new THREE.Color(0x0099ff);
+			// scene.background = new THREE.Color(0x0099ff);
 
 
 			

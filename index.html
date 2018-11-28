@@ -16,27 +16,43 @@
 			}
 
 			body {
-				background-color: #000;
+				background-color: #fff;
 				margin: 0px;
 				height: 100%;
 				color: #555;
 				/*overflow: hidden;*/
 			}
 
+			.wrapper {
+				position: relative;
+				margin: 0 auto;
+				width: 900px;
+			}
+
 
 			.header {
-				position: fixed;
-				padding-left: 40px;
+				position: relative;
 				width: 100%;
 				color: #fff;
 				background-color: #000;
 				font-size: 32px;
 				font-weight: 100;
 				font-family: 'Helvetica Neue';
-				text-align: center;
-				line-height: 80px;
-				letter-spacing: 2px;
-				z-index: 999;
+				text-align: left;
+			}
+			.header .logo {
+				display: inline-block;
+				vertical-align: middle;
+				margin-right: 6px;
+				width: 40px;
+				height: 40px;
+				background-image: url(images/logo.png);
+				background-size: cover;
+			}
+			.header .header-title {
+				display: inline-block;
+				vertical-align: middle;
+				line-height: 72px;
 			}
 			.header .spectial {
 				font-weight: 900;
@@ -86,27 +102,30 @@
 
 			/*info*/
 			.info {
-				position: absolute;
-				top: 0; left: 0;
-				z-index: 99;
+				position: relative;
 			}
 			.info .wrapper {
+				position: relative;
 				margin: 0 auto;
-				padding: 40px 80px;
-				width: 600px;
+				width: 900px;
 			}
 			.info .wrapper #main_title {
-				position: absolute;
-				top: 140px;
-				padding: 20px 40px;
-				color: #fff;
-				font-size: 64px;
+				margin: 24px 0 12px;
+				color: #112233;
+				font-size: 48px;
 				font-family: 'Helvetica Neue';
-				font-weight: 100;
-				letter-spacing: 2px;
-				background: rgba( 0, 0, 0, 0.8 );
+				font-weight: 700;
+				line-height: 64px;
+				letter-spacing: -1.2px;
 			}
-				
+			.info .wrapper .deco-line {
+				width: 100px;
+				height: 4px;
+				background-color: #112233;
+			}
+
+			
+			/* gallery */
 			#gallery {
 				position: relative;
 				margin: 0 auto;
@@ -116,7 +135,7 @@
 
 			#gallery h4 {
 				padding: 40px 0;
-				color: #fff;
+				color: #5f606d;
 				font-size: 44px;
 				font-weight: 100;
 				letter-spacing: 2px;
@@ -145,7 +164,12 @@
 		</style>
 	</head>
 <body>
-	<div class="header">Pattern<span class="spectial">Painter</span></div>
+	<div class="header">
+		<div class="wrapper">
+			<div class="logo"></div>
+			<span class="header-title">Bg-</span><span class="header-title spectial">Painter</span>
+		</div>
+	</div>
 	<div class="footer">Made by <a href="http://www.fangyexu.com" target="blank">Fangye X</a></div>
 
 	<!-- main view -->
@@ -157,6 +181,7 @@
 	<div class="info">
 		<div class="wrapper">
 			<div id="main_title"></div>
+			<div class="deco-line"></div>
 		</div>
 	</div>
 

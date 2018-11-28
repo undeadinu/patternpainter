@@ -6,7 +6,6 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
 		<script src="../build/three.js"></script>
-
 		<script src="../js/Detector.js"></script>
 		<script src="../js/libs/stats.min.js"></script>
 		<script src="../js/controls/OrbitControls.js"></script>
@@ -359,37 +358,37 @@
 
 			// ---- Step 3 : Morphing the quad by Influence
 			// ----
-			// ifl_01 = new Influence( 240, -200, 0, 900 );
-			// ifl_01.surround( quad_geo );
-		 	// ifl_01.moveTo( 260, 160, 400 );
+			ifl_01 = new Influence( 240, -200, 0, 900 );
+			ifl_01.surround( quad_geo );
+		 	ifl_01.moveTo( 260, 160, 400 );
 
-		 	// ifl_02 = new Influence( -240, 200, 0, 900 );
-			// ifl_02.surround( quad_geo );
-		 	// ifl_02.moveTo( -260, -160, 400 );
+		 	ifl_02 = new Influence( -240, 200, 0, 900 );
+			ifl_02.surround( quad_geo );
+		 	ifl_02.moveTo( -260, -160, 400 );
 
 
-		 	var width = window.innerWidth;
-		 	var height = window.innerHeight;
+		 	// var width = window.innerWidth;
+		 	// var height = window.innerHeight;
 
-		 	for( var i=0; i<2; i++ ) {
-		 		for( var j=0; j<2; j++ ) {
-			 		var direction = Math.random() > 0.5 ? 1 : -1;
+		 	// for( var i=0; i<2; i++ ) {
+		 	// 	for( var j=0; j<2; j++ ) {
+			 // 		var direction = Math.random() > 0.5 ? 1 : -1;
 
-			 		var anchorX = Math.random() * width/2 * Math.pow( -1, i );
-			 		var anchorY = Math.random() * height/2 * Math.pow( -1, j );
-			 		var anchorRadius = Math.random() * 300 + 450;
+			 // 		var anchorX = Math.random() * width/2 * Math.pow( -1, i );
+			 // 		var anchorY = Math.random() * height/2 * Math.pow( -1, j );
+			 // 		var anchorRadius = Math.random() * 300 + 450;
 
-			 		var moveToX = anchorX + direction * ( Math.random() * 300 + 150 );
-			 		var moveToY = anchorY + direction * ( Math.random() * 200 + 100 );
+			 // 		var moveToX = anchorX + direction * ( Math.random() * 300 + 150 );
+			 // 		var moveToY = anchorY + direction * ( Math.random() * 200 + 100 );
 
-			 		var ifl = new Influence( anchorX, anchorY, 0, anchorRadius );
+			 // 		var ifl = new Influence( anchorX, anchorY, 0, anchorRadius );
 
-			 		ifl.surround( quad_geo );
+			 // 		ifl.surround( quad_geo );
 
-			 		ifl.moveTo( moveToX, moveToY, 400 );
+			 // 		ifl.moveTo( moveToX, moveToY, 400 );
 
-		 		}
-		 	}
+		 	// 	}
+		 	// }
 
 
 
@@ -411,8 +410,6 @@
 		}
 
 		function render() {
-
-			
 
 			if( !isFrameControlling ) {
 				frame++;
