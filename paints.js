@@ -51,7 +51,7 @@ var paints = {
 	'Scifidots_00' : {
 
 		name : 'Sci-fi dots',
-		url : 'scifidots_00.html',
+		url : 'Scifidots_00.html',
 		picurl : 'images/scifi-dots-00.png'
 
 	},
@@ -59,26 +59,24 @@ var paints = {
 	'Scifidots_01' : {
 
 		name : 'Sci-fi dots #01',
-		url : 'scifidots_01.html',
-		picurl : 'images/scifi-dots-01.png'
+		url : 'Scifidots_01.html',
+		picurl : 'images/scifi-dots-01.png',
+		description: 'This is a sci-fi style dots, you could use it as a background appears in the data visualization'
 
 	},
-
 
 	'Scifidots_02' : {
 
 		name : 'Sci-fi dots #02',
-		url : 'scifidots_02.html',
+		url : 'Scifidots_02.html',
 		picurl : 'images/scifi-dots-02.png'
 
 	},
 
-
-
 	'Scifidots_03' : {
 
 		name : 'Sci-fi dots #03',
-		url : 'scifidots_03.html',
+		url : 'Scifidots_03.html',
 		picurl : 'images/scifi-dots-03.png'
 
 	},
@@ -86,7 +84,7 @@ var paints = {
 
 	// explosion
 
-	'explosion_00' : {
+	'Explosion_00' : {
 
 		name : 'Explosion #00',
 		url : 'Explosion_00.html',

@@ -7,14 +7,72 @@
 body {
 	color: #eee;
 	font-family:Monospace;
-	font-size:13px;
-	text-align:center;
+	font-size: 0px;
 
-	background-color: #000;
+	background-color: #fff;
 	margin: 0px;
 	padding: 0px;
 	overflow: hidden;
 }
+
+
+#container {
+
+}
+
+#panel {
+	position: relative;
+	margin: 0 auto;
+	width: 900px;
+	height: 120px;
+	background-color: #f2f6f8;
+}
+#panel .info-wrapper {
+	position: relative;
+	display: inline-block;
+	vertical-align: top;
+	width: 60%;
+}
+#panel .info-wrapper .info-title {
+	margin: 12px 0 6px;
+	color: #112233;
+	font-size: 48px;
+	font-family: 'Helvetica Neue';
+	font-weight: 700;
+	line-height: 64px;
+	letter-spacing: -1.2px;
+}
+#panel .info-wrapper .info-description {
+	color: #556666;
+	font-size: 12px;
+}
+
+
+#panel .btn-wrapper {
+	display: inline-block;
+	vertical-align: top;
+	position: relative;
+	width: 40%;
+	height: 100px;
+	text-align: right;
+}
+#panel .btn-wrapper .btn-download {
+	display: inline-block;
+	vertical-align: top;
+	margin-top: 30px;
+	margin-right: 40px;
+	width: 60px;
+	height: 60px;
+	color: #fff;
+	font-size: 18px;
+	background-color: #000;
+	border-radius: 30px;
+	text-align: center;
+	line-height: 60px;
+}
+
+
+
 
 
 

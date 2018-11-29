@@ -60,9 +60,8 @@
 			}
 
 			.footer {
-				position: fixed;
+				position: relative;
 				padding-right: 40px;
-				bottom: 0;
 				width: 100%;
 				height: 60px;
 				background-color: #000;
@@ -102,6 +101,7 @@
 
 			/*info*/
 			.info {
+				display: none;
 				position: relative;
 			}
 			.info .wrapper {
@@ -154,7 +154,7 @@
 				overflow: hidden;
 			}
 			.link-name {
-				color: #fff;
+				color: #112233;
 				font-size: 14px;
 				font-weight: 200;
 				font-style: italic;
@@ -170,11 +170,19 @@
 			<span class="header-title">Bg-</span><span class="header-title spectial">Painter</span>
 		</div>
 	</div>
-	<div class="footer">Made by <a href="http://www.fangyexu.com" target="blank">Fangye X</a></div>
 
 	<!-- main view -->
 	<section id="viewer">
-		<iframe id="painterview" frameborder="0" scrolling="no" src="./paints/ColorGradients_00.html" name="painterview" allowfullscreen allowvr onmousewheel=""></iframe>
+		<iframe id="painterview" 
+				src="./paints/ColorGradients_00.html" 
+				name="painterview" 
+				onload="setIframeInfo()" 
+				frameborder="0" 
+				scrolling="no" 
+				allowfullscreen 
+				allowvr 
+				onmousewheel="">
+		</iframe>
 	</section>
 
 	<!-- info view -->
@@ -191,12 +199,28 @@
 		<div id="content"></div>
 	</section>
 
+	<!-- footer -->
+	<div class="footer">Made by <a href="http://www.fangyexu.com" target="blank">Fangye X</a></div>
+
 	<script src="paints.js"></script>
 	<script type="text/javascript">
 
 		// style setting
+		var screenWidth = window.innerWidth;
+		var iframeHeight = screenWidth > 1400 ? 720 : 600;
 		var pview = document.getElementById('painterview');
-		pview.style.height = ( window.innerWidth / 3 ) + 'px';
+		pview.style.height = iframeHeight + 'px';
+
+
+
+		// 创建一个对象，用来封装当前选中的paint的信息
+
+		var CurrentPainterInfo = {
+			name: '',
+			url: '',
+			picurl: '',
+			description: ''
+		}
 
 
 
@@ -211,21 +235,18 @@
 			var linkItem = document.createElement('a');
 			linkItem.className = 'link';
 			linkItem.href = './paints/' + item.url;
-			linkItem.setAttribute( 'target', 'painterview' );
+			linkItem.setAttribute( 'target', 'painterview' ); // 点击后切换至对应的iframe
 			linkItem.setAttribute( 'name', item.name );
+			linkItem.setAttribute( 'id', key );
 			linkItem.addEventListener( 'click', function(event){
-				main_title.innerHTML = event.currentTarget.name;
+				var id = event.currentTarget.id;
+				var targetItem = paints[ id ];
+				// main_title.innerHTML = event.currentTarget.name; 
+				CurrentPainterInfo.name = targetItem.name;
+				CurrentPainterInfo.url = targetItem.url;
+				CurrentPainterInfo.description = targetItem.description;
 			},false);
 
-			// linkItem.addEventListener( 'click', function ( event ) {
-
-			// 	if ( event.button === 0 ) {
-
-			// 		selectFile( file );
-
-			// 	}
-
-			// } );
 
 
 			var img = document.createElement('img');
@@ -246,7 +267,12 @@
 
 		}
 
-
+		function setIframeInfo() {
+			if( painterview.window.document.getElementById("panel") ) {
+				painterview.window.document.getElementById("info_title").innerHTML = CurrentPainterInfo.name;
+				painterview.window.document.getElementById("info_description").innerHTML = CurrentPainterInfo.description;
+			}
+		}
 
 		function selectFile(file) {
 
@@ -255,8 +281,6 @@
 			painterview.src = file + '.html';
 
 			selected = file;
-
-
 
 		}
 	</script>
