@@ -6,16 +6,12 @@ function randomWithinScreen ( width, height, depth ) {
 	return new THREE.Vector3( _x, _y, _z );
 }
 
-function initPainterUtils ( renderer ) {
+function initInfoDomPanel ( renderer ) {
 	renderer.domElement.setAttribute('id','canvas_painter');
 	// canvas_painter.style.height = 
 
 	var title = document.title.replace('_',' #');
 
-	// 生成每个paint的通用操作面板
-	// 包括：刷新、下载
-	var panel = document.createElement('DIV');
-	panel.setAttribute('id','panel');
 
 	// 说明信息 -----------------------------------
 	// 主标题
@@ -35,9 +31,6 @@ function initPainterUtils ( renderer ) {
 
 
 	// 操作组 -----------------------------------
-	var btnWrapper = document.createElement('DIV');
-	btnWrapper.setAttribute('class','btn-wrapper');
-
 	var btn_download = document.createElement('DIV');
 	btn_download.setAttribute('class','btn btn-download');
 	btn_download.innerHTML = '下载';
@@ -56,7 +49,25 @@ function initPainterUtils ( renderer ) {
 	}, false );
 
 
+	var btn_refresh = document.createElement('DIV');
+	btn_refresh.setAttribute('class','btn btn-download');
+	btn_refresh.innerHTML = '刷新';
+	btn_refresh.addEventListener('click', function (e) {
+		refreshPaint();
+	}, false);
+
+
+	var btnWrapper = document.createElement('DIV');
+	btnWrapper.setAttribute('class','btn-wrapper');
 	btnWrapper.appendChild(btn_download);
+	btnWrapper.appendChild(btn_refresh);
+
+
+
+	// 生成每个paint的通用操作面板
+	// 包括：刷新、下载
+	var panel = document.createElement('DIV');
+	panel.setAttribute('id','panel');
 	panel.appendChild(infoWrapper);
 	panel.appendChild(btnWrapper);
 

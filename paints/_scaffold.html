@@ -15,15 +15,19 @@
 <body>
 	<div id="container"></div>
 	<script>
+		// Common Template :: 
+		// -----------------------------------------------------------------------------------
+			
 		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-		var camera, scene, renderer, composer, stats, controls;
+		var camera, scene, renderer, composer, stats, controls, globalColors=[];
 		var frame = 0;
 
-		var globalColors = [];
+		var w = window.innerWidth;
+		var h = w > 1400 ? 600 : 480;
 
 		// get Colors and init
-		fetch( './scripts/Color.json' ).then( res => {
+		fetch( './data/Color.json' ).then( res => {
 			return res.json().then( json => {
 				colors = json['Color_fantasy'][0].colors;
 				for( var i in colors ) {

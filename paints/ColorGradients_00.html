@@ -169,7 +169,7 @@
 
 				this.reset2dPattern(); // 首先重排一下2d canvas的样式
 
-				fetch( './scripts/Color.json' ).then( res => {
+				fetch( './data/Color.json' ).then( res => {
 					return res.json().then( json => {
 						var data = json;
 						this.colorscheme_0 = data['Color_fantasy'][0].colors;
