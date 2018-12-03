@@ -66,10 +66,10 @@
 
 		function initPaint() {
 			initRenderer(); // Scene | Camera | Renderer
+			initInfoDomPanel( renderer ); // Div 
 			buildObjects(); // Meshes | Sprites | Lights | Shaders
 			buildPostEFX(); // Post processings
 			buildControls(); // Dat.gui
-			initInfoDomPanel( renderer ); // Div 
 		};
 
 		var PaintData = {

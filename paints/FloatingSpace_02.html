@@ -200,7 +200,7 @@
 			}
 
 
-			var cameraRTT, camera, sceneRTT, sceneScreen, scene, renderer;
+			var cameraRTT, camera, sceneRTT, scene, renderer;
 
 			var u_time = 0;
 
@@ -339,7 +339,7 @@
 
 				var loader = new THREE.ColladaLoader();
 
-				loader.load( '../models/money.dae', function ( collada ) {
+				loader.load( '../geometries/money.dae', function ( collada ) {
 
 					dae = collada.scene;
 

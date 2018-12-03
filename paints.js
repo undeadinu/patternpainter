@@ -44,6 +44,15 @@ var paints = {
 
 	},
 
+	'FloatingSpace_03' : {
+
+		name	: 'Floating Space #03',
+		title	: 'Floating Hearts',
+		url 	: 'FloatingSpace_03.html',
+		picurl 	: 'images/floating-space-03.png'
+
+	},
+
 
 
 	// scifi dots

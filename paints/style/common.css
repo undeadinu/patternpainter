@@ -20,6 +20,11 @@ body {
 
 }
 
+
+/*
+主控制面板
+包括：paint标题 | 下载按钮 | 刷新按钮 
+*/
 #panel {
 	position: relative;
 	margin: 0 auto;
